@@ -5,6 +5,7 @@ import logging
 import os
 import subprocess
 import shlex
+import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -18,7 +19,8 @@ class CommandResult:
         stdout: str,
         stderr: str,
         cmd: str,
-        success: bool = None
+        success: bool = None,
+        execution_time: float = None
     ) -> None:
         """
         Initialize the command result.
@@ -29,12 +31,14 @@ class CommandResult:
             stderr (str): Standard error of the command.
             cmd (str): Command that was executed.
             success (bool, optional): Override success determination. Defaults to None.
+            execution_time (float, optional): Command execution time in seconds. Defaults to None.
         """
         self.returncode = returncode
         self.stdout = stdout
         self.stderr = stderr
         self.cmd = cmd
         self._success = success if success is not None else (returncode == 0)
+        self.execution_time = execution_time
     
     @property
     def success(self) -> bool:
@@ -44,6 +48,27 @@ class CommandResult:
     def __bool__(self) -> bool:
         """Boolean representation of the result."""
         return self.success
+        
+    def get_formatted_execution_time(self) -> str:
+        """
+        Get formatted execution time as a human-readable string.
+        
+        Returns:
+            str: Formatted execution time string or empty string if not available.
+        """
+        if self.execution_time is None:
+            return ""
+            
+        if self.execution_time < 0.1:
+            return f"{self.execution_time * 1000:.0f}毫秒"
+        elif self.execution_time < 1:
+            return f"{self.execution_time * 1000:.0f}毫秒"
+        elif self.execution_time < 60:
+            return f"{self.execution_time:.2f}秒"
+        else:
+            minutes = int(self.execution_time // 60)
+            seconds = self.execution_time % 60
+            return f"{minutes}分{seconds:.2f}秒"
 
 
 class CommandExecutor:
@@ -62,6 +87,7 @@ class CommandExecutor:
         shell: bool = False,
         check: bool = False,
         capture_output: bool = True,
+        measure_time: bool = True,
     ) -> CommandResult:
         """
         Run a command and return the result.
@@ -74,6 +100,7 @@ class CommandExecutor:
             shell (bool, optional): Whether to use shell. Defaults to False.
             check (bool, optional): Whether to raise if returncode is non-zero. Defaults to False.
             capture_output (bool, optional): Whether to capture output. Defaults to True.
+            measure_time (bool, optional): Whether to measure execution time. Defaults to True.
             
         Returns:
             CommandResult: Result of the command.
@@ -106,6 +133,9 @@ class CommandExecutor:
         if env:
             cmd_env.update(env)
         
+        # Start execution time measurement
+        start_time = time.time() if measure_time else None
+        
         try:
             # Run the command
             process = subprocess.run(
@@ -119,25 +149,32 @@ class CommandExecutor:
                 text=True,
             )
             
+            # Calculate execution time if requested
+            execution_time = time.time() - start_time if measure_time else None
+            
             # Create the result object
             result = CommandResult(
                 returncode=process.returncode,
                 stdout=process.stdout if capture_output else "",
                 stderr=process.stderr if capture_output else "",
                 cmd=cmd_str,
+                execution_time=execution_time
             )
             
             # Log the outcome
             if result.success:
-                self.logger.debug(f"Command succeeded: {cmd_str}")
+                time_str = f" (耗时: {result.get_formatted_execution_time()})" if measure_time else ""
+                self.logger.debug(f"Command succeeded{time_str}: {cmd_str}")
             else:
-                self.logger.warning(f"Command failed with exit code {result.returncode}: {cmd_str}")
+                time_str = f" after {result.get_formatted_execution_time()}" if measure_time else ""
+                self.logger.warning(f"Command failed with exit code {result.returncode}{time_str}: {cmd_str}")
                 if capture_output and result.stderr:
                     self.logger.warning(f"Error output: {result.stderr}")
             
             return result
             
         except subprocess.TimeoutExpired as e:
+            execution_time = time.time() - start_time if measure_time else None
             self.logger.error(f"Command timed out after {timeout}s: {cmd_str}")
             return CommandResult(
                 returncode=124,  # Common timeout exit code
@@ -145,9 +182,12 @@ class CommandExecutor:
                 stderr=getattr(e, 'stderr', '') or f"Timeout after {timeout} seconds",
                 cmd=cmd_str,
                 success=False,
+                execution_time=execution_time
             )
             
         except Exception as e:
+            execution_time = time.time() - start_time if measure_time else None
+            
             # 对于命令检测类操作（which/where），使用debug级别而不是error
             if isinstance(cmd, list) and any(x in ['which', 'where'] for x in cmd):
                 self.logger.debug(f"Command check failed: {cmd_str}")
@@ -162,6 +202,7 @@ class CommandExecutor:
                 stderr=str(e),
                 cmd=cmd_str,
                 success=False,
+                execution_time=execution_time
             )
     
     def command_exists(self, cmd: str) -> bool:

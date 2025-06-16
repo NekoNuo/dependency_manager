@@ -104,18 +104,47 @@ class ToolAvailabilityChecker:
             str: Installation instructions for the tool.
         """
         instructions = {
+            # Python 相关
             "pip": "安装 pip: https://pip.pypa.io/en/stable/installation/",
             "pip3": "安装 pip3: https://pip.pypa.io/en/stable/installation/",
             "python": "安装 Python: https://www.python.org/downloads/",
             "python3": "安装 Python 3: https://www.python.org/downloads/",
+            "poetry": "安装 Poetry: https://python-poetry.org/docs/#installation",
+            "pipenv": "安装 Pipenv: pip install pipenv",
+            
+            # JavaScript/Node.js 相关
             "npm": "安装 npm: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm",
             "yarn": "安装 yarn: https://classic.yarnpkg.com/en/docs/install",
             "pnpm": "安装 pnpm: https://pnpm.io/installation",
+            "node": "安装 Node.js: https://nodejs.org/en/download/",
+            
+            # 系统包管理器
             "brew": "安装 Homebrew: https://brew.sh/",
             "apt": "apt 通常预装在基于 Debian 的 Linux 发行版中",
+            "apt-get": "apt-get 通常预装在基于 Debian 的 Linux 发行版中",
             "yum": "yum 通常预装在基于 RPM 的 Linux 发行版中",
             "dnf": "dnf 通常预装在较新的基于 RPM 的 Linux 发行版中",
+            "pacman": "pacman 通常预装在基于 Arch 的 Linux 发行版中",
             "choco": "安装 Chocolatey: https://chocolatey.org/install",
+            "scoop": "安装 Scoop: https://scoop.sh/",
+            
+            # 其他语言包管理器
+            "cargo": "安装 Cargo (Rust): https://doc.rust-lang.org/cargo/getting-started/installation.html",
+            "rustup": "安装 Rustup (Rust): https://rustup.rs/",
+            "go": "安装 Go: https://golang.org/doc/install",
+            "mvn": "安装 Maven: https://maven.apache.org/install.html",
+            "maven": "安装 Maven: https://maven.apache.org/install.html",
+            "gradle": "安装 Gradle: https://gradle.org/install/",
+            "composer": "安装 Composer (PHP): https://getcomposer.org/download/",
+            "gem": "安装 RubyGems: https://rubygems.org/pages/download",
+            "bundle": "安装 Bundler (Ruby): gem install bundler",
+            "bundler": "安装 Bundler (Ruby): gem install bundler",
+            "dotnet": "安装 .NET SDK: https://dotnet.microsoft.com/download",
+            "nuget": "安装 NuGet CLI: https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools",
+            "swift": "安装 Swift: https://swift.org/download/",
+            "dart": "安装 Dart SDK: https://dart.dev/get-dart",
+            "pub": "安装 Dart Pub (包含在 Dart SDK 中): https://dart.dev/get-dart",
+            "flutter": "安装 Flutter: https://flutter.dev/docs/get-started/install",
         }
         
         return instructions.get(tool_name, f"请安装 {tool_name} 以使用此功能")
