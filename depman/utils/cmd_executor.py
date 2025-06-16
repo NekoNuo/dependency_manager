@@ -83,11 +83,19 @@ class CommandExecutor:
             subprocess.SubprocessError: If check is True and returncode is non-zero.
         """
         # Format the command as needed
+        import platform
+        is_windows = platform.system().lower() == 'windows'
+        
         if isinstance(cmd, list) and not shell:
-            cmd_str = " ".join(shlex.quote(c) for c in cmd)
+            if is_windows:
+                # Windows不使用shlex引用
+                cmd_str = " ".join(str(c) for c in cmd)
+            else:
+                # Unix系统使用shlex引用
+                cmd_str = " ".join(shlex.quote(c) for c in cmd)
         else:
             if isinstance(cmd, list):
-                cmd_str = " ".join(cmd)
+                cmd_str = " ".join(str(c) for c in cmd)
             else:
                 cmd_str = cmd
         
@@ -140,8 +148,14 @@ class CommandExecutor:
             )
             
         except Exception as e:
-            self.logger.error(f"Error executing command: {cmd_str}")
-            self.logger.error(f"Error details: {str(e)}")
+            # 对于命令检测类操作（which/where），使用debug级别而不是error
+            if isinstance(cmd, list) and any(x in ['which', 'where'] for x in cmd):
+                self.logger.debug(f"Command check failed: {cmd_str}")
+                self.logger.debug(f"Details: {str(e)}")
+            else:
+                self.logger.error(f"Error executing command: {cmd_str}")
+                self.logger.error(f"Error details: {str(e)}")
+            
             return CommandResult(
                 returncode=1,
                 stdout='',
@@ -160,7 +174,23 @@ class CommandExecutor:
         Returns:
             bool: True if the command exists, False otherwise.
         """
-        result = self.run_command(['which', cmd], shell=False)
+        import shutil
+        import platform
+        
+        # First try using shutil.which, which is more reliable
+        if shutil.which(cmd) is not None:
+            return True
+            
+        # Fallback to platform-specific command
+        is_windows = platform.system().lower() == 'windows'
+        
+        if is_windows:
+            # On Windows, use 'where' command
+            result = self.run_command(['where', cmd], shell=False)
+        else:
+            # On Unix-like systems, use 'which' command
+            result = self.run_command(['which', cmd], shell=False)
+        
         return result.success
 
     def get_command_output(self, cmd: Union[str, List[str]], **kwargs) -> str:

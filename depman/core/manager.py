@@ -14,6 +14,7 @@ from depman.core.config import Config
 from depman.models.dependency import Dependency, DependencyScope, DependencyType
 from depman.utils.cmd_executor import CommandExecutor
 from depman.utils.os_utils import OSUtils
+from depman.utils.tool_checker import ToolAvailabilityChecker
 
 
 class DependencyManager:
@@ -30,9 +31,13 @@ class DependencyManager:
         self.logger = logging.getLogger("depman.manager")
         self.cmd_executor = CommandExecutor()
         self.os_utils = OSUtils()
+        self.tool_checker = ToolAvailabilityChecker()
         
         # Dictionary of package manager adapters
         self._adapters: Dict[DependencyType, PackageManagerAdapter] = {}
+        
+        # Dictionary to track adapter loading errors
+        self._adapter_errors: Dict[str, str] = {}
         
         # Initialize adapters
         self._initialize_adapters()
@@ -428,6 +433,22 @@ class DependencyManager:
             List[Dict]: List of dependency information.
         """
         results = []
+        errors = []
+        
+        # Check required tools for common package managers
+        required_tools = ["npm", "pip", "python", "python3"]
+        missing_tools = self.tool_checker.get_missing_tools(required_tools)
+        
+        if missing_tools:
+            missing_tools_msg = self.tool_checker.get_formatted_missing_tools_message(missing_tools)
+            self.logger.warning(f"Some package managers may not be available: {missing_tools_msg}")
+            # Add the missing tools warning to the results
+            results.append({
+                "warning": "missing_tools",
+                "message": f"某些包管理器工具不可用，可能会影响扫描结果",
+                "missing_tools": missing_tools,
+                "install_instructions": missing_tools_msg
+            })
         
         # Find adapters that can handle this project
         handlers = []
@@ -437,7 +458,19 @@ class DependencyManager:
         
         if not handlers:
             self.logger.info(f"No package manager detected for project in {project_dir}")
-            return []
+            if missing_tools:
+                # If we have missing tools and no handlers, it's likely because of missing tools
+                # Add a specific error message
+                results.append({
+                    "error": "no_package_manager",
+                    "message": f"无法检测到项目 {project_dir.name} 的包管理器，可能是因为必要的工具未安装"
+                })
+            else:
+                results.append({
+                    "error": "no_package_manager",
+                    "message": f"无法检测到项目 {project_dir.name} 的包管理器"
+                })
+            return results
         
         # Get dependencies from each adapter
         for adapter in handlers:
@@ -457,7 +490,28 @@ class DependencyManager:
                 })
                 
             except Exception as e:
-                self.logger.error(f"Error scanning project with {adapter.name}: {e}")
+                error_msg = str(e)
+                self.logger.error(f"Error scanning project with {adapter.name}: {error_msg}")
+                # Check if the error is related to a missing command
+                if "command not found" in error_msg.lower() or "not recognized" in error_msg.lower():
+                    # Try to identify the missing command
+                    command = adapter.name
+                    errors.append({
+                        "error": "command_not_found",
+                        "package_manager": adapter.name,
+                        "message": f"命令 '{command}' 未找到。请安装 {command} 以扫描此类型的项目依赖。",
+                        "install_instructions": self.tool_checker.get_installation_instructions(command)
+                    })
+                else:
+                    errors.append({
+                        "error": "scan_failed",
+                        "package_manager": adapter.name,
+                        "message": f"使用 {adapter.name} 扫描项目时出错: {error_msg}"
+                    })
+        
+        # Add any errors to the results
+        if errors:
+            results.extend(errors)
         
         # TODO: Implement security scanning if requested
         if security:
@@ -476,21 +530,79 @@ class DependencyManager:
             List[Dict]: List of dependency information.
         """
         results = []
+        errors = []
+        
+        # Check required tools for common package managers
+        required_tools = ["npm", "pip", "python", "python3"]
+        missing_tools = self.tool_checker.get_missing_tools(required_tools)
+        
+        if missing_tools:
+            missing_tools_msg = self.tool_checker.get_formatted_missing_tools_message(missing_tools)
+            self.logger.warning(f"Some package managers may not be available: {missing_tools_msg}")
+            # Add the missing tools warning to the results
+            results.append({
+                "warning": "missing_tools",
+                "message": f"某些包管理器工具不可用，可能会影响扫描结果",
+                "missing_tools": missing_tools,
+                "install_instructions": missing_tools_msg
+            })
+        
+        # Track the number of successful adapters
+        successful_adapters = 0
         
         # Get dependencies from each adapter
         for adapter in self._adapters.values():
             if not adapter.is_available():
+                self.logger.debug(f"Adapter {adapter.name} is not available, skipping")
                 continue
                 
             try:
                 self.logger.info(f"Scanning global dependencies using {adapter.name}")
                 deps = adapter.list_packages(global_packages=True)
                 
-                for dep in deps:
-                    results.append(dep.to_dict())
+                if deps:
+                    successful_adapters += 1
+                    # Add a header for this package manager
+                    results.append({
+                        "package_manager_info": adapter.name,
+                        "dependency_count": len(deps)
+                    })
+                    
+                    # Add the dependencies
+                    for dep in deps:
+                        results.append(dep.to_dict())
                     
             except Exception as e:
-                self.logger.error(f"Error scanning global dependencies with {adapter.name}: {e}")
+                error_msg = str(e)
+                self.logger.error(f"Error scanning global dependencies with {adapter.name}: {error_msg}")
+                # Check if the error is related to a missing command
+                if "command not found" in error_msg.lower() or "not recognized" in error_msg.lower():
+                    # Try to identify the missing command
+                    command = adapter.name
+                    errors.append({
+                        "error": "command_not_found",
+                        "package_manager": adapter.name,
+                        "message": f"命令 '{command}' 未找到。请安装 {command} 以扫描全局依赖。",
+                        "install_instructions": self.tool_checker.get_installation_instructions(command)
+                    })
+                else:
+                    errors.append({
+                        "error": "scan_failed",
+                        "package_manager": adapter.name,
+                        "message": f"使用 {adapter.name} 扫描全局依赖时出错: {error_msg}"
+                    })
+        
+        # Add any errors to the results
+        if errors:
+            results.extend(errors)
+            
+        # If no adapters were successful and we have missing tools, it's likely due to missing tools
+        if successful_adapters == 0 and missing_tools:
+            results.append({
+                "error": "no_successful_scans",
+                "message": "无法扫描全局依赖，可能是因为必要的工具未安装",
+                "missing_tools": missing_tools
+            })
         
         # TODO: Implement security scanning if requested
         if security:
