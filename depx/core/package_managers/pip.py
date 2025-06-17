@@ -2,11 +2,21 @@
 Pip 包管理器实现
 """
 
+import json
 import logging
+import re
+import urllib.request
+import urllib.parse
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
-from .base import BasePackageManager, PackageManagerResult
+from .base import (
+    BasePackageManager,
+    OutdatedPackage,
+    PackageManagerResult,
+    SearchResult,
+    UpdateResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -142,3 +152,175 @@ class PipManager(BasePackageManager):
         pip_cmd = self._get_pip_command()
         cmd = [pip_cmd, "uninstall", "--yes", package_name]
         return " ".join(cmd)
+
+    def search(self, package_name: str, limit: int = 10) -> List[SearchResult]:
+        """
+        使用 PyPI API 搜索包
+
+        Args:
+            package_name: 包名或关键词
+            limit: 限制结果数量
+
+        Returns:
+            搜索结果列表
+        """
+        try:
+            # 使用 PyPI API 搜索
+            search_url = f"https://pypi.org/pypi/{urllib.parse.quote(package_name)}/json"
+
+            with urllib.request.urlopen(search_url, timeout=10) as response:
+                data = json.loads(response.read().decode())
+
+                info = data.get("info", {})
+                result = SearchResult(
+                    name=info.get("name", ""),
+                    version=info.get("version", ""),
+                    description=info.get("summary", ""),
+                    author=info.get("author", ""),
+                    downloads="",  # PyPI API 不直接提供下载量
+                    homepage=info.get("home_page", ""),
+                    repository=info.get("project_url", ""),
+                    license=info.get("license", "")
+                )
+                return [result]
+
+        except Exception as e:
+            logger.debug(f"PyPI API 搜索失败，尝试简单搜索: {e}")
+
+        # 如果精确搜索失败，尝试使用 pip search 的替代方案
+        # 由于 pip search 已被废弃，我们使用简单的包名验证
+        try:
+            # 尝试获取包信息来验证包是否存在
+            pip_cmd = self._get_pip_command()
+            cmd = [pip_cmd, "show", package_name]
+            result = self.run_command(cmd, timeout=10)
+
+            if result.success:
+                # 解析 pip show 的输出
+                info = self._parse_pip_show_output(result.output)
+                search_result = SearchResult(
+                    name=info.get("Name", ""),
+                    version=info.get("Version", ""),
+                    description=info.get("Summary", ""),
+                    author=info.get("Author", ""),
+                    downloads="",
+                    homepage=info.get("Home-page", ""),
+                    repository="",
+                    license=info.get("License", "")
+                )
+                return [search_result]
+
+        except Exception as e:
+            logger.error(f"pip 搜索异常: {e}")
+
+        return []
+
+    def check_outdated(self) -> List[OutdatedPackage]:
+        """
+        检查过时的包
+
+        Returns:
+            过时包列表
+        """
+        if not self.is_available():
+            return []
+
+        try:
+            # 使用 pip list --outdated 命令
+            pip_cmd = self._get_pip_command()
+            cmd = [pip_cmd, "list", "--outdated", "--format=json"]
+            result = self.run_command(cmd, timeout=30)
+
+            if result.success and result.output:
+                outdated_data = json.loads(result.output)
+                outdated_packages = []
+
+                for item in outdated_data:
+                    package = OutdatedPackage(
+                        name=item.get("name", ""),
+                        current_version=item.get("version", ""),
+                        latest_version=item.get("latest_version", ""),
+                        package_type="production"  # pip 不区分开发依赖
+                    )
+                    outdated_packages.append(package)
+
+                return outdated_packages
+
+            return []
+
+        except json.JSONDecodeError as e:
+            logger.error(f"解析 pip list --outdated 结果失败: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"pip list --outdated 异常: {e}")
+            return []
+
+    def update_package(
+        self, package_name: Optional[str] = None, dev: bool = False
+    ) -> UpdateResult:
+        """
+        更新包
+
+        Args:
+            package_name: 包名，None 表示更新所有包
+            dev: 是否包括开发依赖（pip 不区分）
+
+        Returns:
+            更新结果
+        """
+        if not self.is_available():
+            return UpdateResult(
+                success=False,
+                message="pip 命令不可用",
+                updated_packages=[],
+                error="pip command not found"
+            )
+
+        # 先检查过时的包
+        outdated_packages = self.check_outdated()
+
+        if package_name:
+            # 更新特定包
+            outdated_packages = [p for p in outdated_packages if p.name == package_name]
+            if not outdated_packages:
+                return UpdateResult(
+                    success=True,
+                    message=f"包 {package_name} 已是最新版本",
+                    updated_packages=[]
+                )
+
+        if not outdated_packages:
+            return UpdateResult(
+                success=True,
+                message="所有包都是最新版本",
+                updated_packages=[]
+            )
+
+        # 构建更新命令
+        pip_cmd = self._get_pip_command()
+        if package_name:
+            cmd = [pip_cmd, "install", "--upgrade", package_name]
+        else:
+            # 更新所有过时的包
+            package_names = [p.name for p in outdated_packages]
+            cmd = [pip_cmd, "install", "--upgrade"] + package_names
+
+        result = self.run_command(cmd, timeout=120)
+
+        return UpdateResult(
+            success=result.success,
+            message="更新完成" if result.success else f"更新失败: {result.message}",
+            updated_packages=outdated_packages if result.success else [],
+            command=result.command,
+            output=result.output,
+            error=result.error
+        )
+
+    def _parse_pip_show_output(self, output: str) -> dict:
+        """解析 pip show 命令的输出"""
+        info = {}
+        for line in output.split('\n'):
+            if ':' in line:
+                key, value = line.split(':', 1)
+                info[key.strip()] = value.strip()
+        return info

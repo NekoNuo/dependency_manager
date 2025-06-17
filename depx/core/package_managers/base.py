@@ -25,6 +25,39 @@ class PackageManagerResult:
     error: str = ""
 
 
+@dataclass
+class SearchResult:
+    """搜索结果"""
+    name: str
+    version: str
+    description: str = ""
+    author: str = ""
+    downloads: str = ""
+    homepage: str = ""
+    repository: str = ""
+    license: str = ""
+
+
+@dataclass
+class OutdatedPackage:
+    """过时的包信息"""
+    name: str
+    current_version: str
+    latest_version: str
+    package_type: str = "production"  # production, development
+
+
+@dataclass
+class UpdateResult:
+    """更新结果"""
+    success: bool
+    message: str
+    updated_packages: List[OutdatedPackage]
+    command: str = ""
+    output: str = ""
+    error: str = ""
+
+
 class BasePackageManager(ABC):
     """包管理器基类"""
 
@@ -78,13 +111,53 @@ class BasePackageManager(ABC):
     ) -> PackageManagerResult:
         """
         卸载包
-        
+
         Args:
             package_name: 包名
             global_uninstall: 是否全局卸载
-            
+
         Returns:
             操作结果
+        """
+        pass
+
+    @abstractmethod
+    def search(self, package_name: str, limit: int = 10) -> List[SearchResult]:
+        """
+        搜索包
+
+        Args:
+            package_name: 包名或关键词
+            limit: 限制结果数量
+
+        Returns:
+            搜索结果列表
+        """
+        pass
+
+    @abstractmethod
+    def check_outdated(self) -> List[OutdatedPackage]:
+        """
+        检查过时的包
+
+        Returns:
+            过时包列表
+        """
+        pass
+
+    @abstractmethod
+    def update_package(
+        self, package_name: Optional[str] = None, dev: bool = False
+    ) -> UpdateResult:
+        """
+        更新包
+
+        Args:
+            package_name: 包名，None 表示更新所有包
+            dev: 是否包括开发依赖
+
+        Returns:
+            更新结果
         """
         pass
 

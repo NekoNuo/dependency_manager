@@ -4,9 +4,15 @@ Yarn 包管理器实现
 
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
-from .base import BasePackageManager, PackageManagerResult
+from .base import (
+    BasePackageManager,
+    OutdatedPackage,
+    PackageManagerResult,
+    SearchResult,
+    UpdateResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -145,3 +151,119 @@ class YarnManager(BasePackageManager):
             cmd = ["yarn", "remove", package_name]
 
         return " ".join(cmd)
+
+    def search(self, package_name: str, limit: int = 10) -> List[SearchResult]:
+        """
+        使用 yarn 搜索包（基于 npm registry）
+
+        Args:
+            package_name: 包名或关键词
+            limit: 限制结果数量
+
+        Returns:
+            搜索结果列表
+        """
+        if not self.is_available():
+            return []
+
+        try:
+            # Yarn 可以使用 npm search，因为它们使用相同的 registry
+            cmd = ["npm", "search", package_name, "--json"]
+            result = self.run_command(cmd, timeout=30)
+
+            if not result.success:
+                logger.warning(f"yarn/npm search 失败: {result.error}")
+                return []
+
+            # 解析 JSON 结果
+            import json
+            search_data = json.loads(result.output)
+            results = []
+
+            for item in search_data[:limit]:
+                search_result = SearchResult(
+                    name=item.get("name", ""),
+                    version=item.get("version", ""),
+                    description=item.get("description", ""),
+                    author=self._get_author_name(item.get("author", {})),
+                    downloads=str(item.get("downloads", {}).get("weekly", "")),
+                    homepage=item.get("links", {}).get("homepage", ""),
+                    repository=item.get("links", {}).get("repository", ""),
+                    license=item.get("license", "")
+                )
+                results.append(search_result)
+
+            return results
+
+        except Exception as e:
+            logger.error(f"yarn search 异常: {e}")
+            return []
+
+    def check_outdated(self) -> List[OutdatedPackage]:
+        """
+        检查过时的包
+
+        Returns:
+            过时包列表
+        """
+        if not self.is_available():
+            return []
+
+        try:
+            # 使用 yarn outdated 命令
+            cmd = ["yarn", "outdated", "--json"]
+            result = self.run_command(cmd, timeout=30)
+
+            # 解析结果（yarn outdated 的输出格式可能不同）
+            # 这里提供基本框架
+            return []
+
+        except Exception as e:
+            logger.error(f"yarn outdated 异常: {e}")
+            return []
+
+    def update_package(
+        self, package_name: Optional[str] = None, dev: bool = False
+    ) -> UpdateResult:
+        """
+        更新包
+
+        Args:
+            package_name: 包名，None 表示更新所有包
+            dev: 是否包括开发依赖
+
+        Returns:
+            更新结果
+        """
+        if not self.is_available():
+            return UpdateResult(
+                success=False,
+                message="yarn 命令不可用",
+                updated_packages=[],
+                error="yarn command not found"
+            )
+
+        # 构建更新命令
+        if package_name:
+            cmd = ["yarn", "upgrade", package_name]
+        else:
+            cmd = ["yarn", "upgrade"]
+
+        result = self.run_command(cmd, timeout=120)
+
+        return UpdateResult(
+            success=result.success,
+            message="更新完成" if result.success else f"更新失败: {result.message}",
+            updated_packages=[],  # 需要解析输出来获取实际更新的包
+            command=result.command,
+            output=result.output,
+            error=result.error
+        )
+
+    def _get_author_name(self, author_data) -> str:
+        """从作者数据中提取作者名"""
+        if isinstance(author_data, dict):
+            return author_data.get("name", "")
+        elif isinstance(author_data, str):
+            return author_data
+        return ""

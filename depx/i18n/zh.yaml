@@ -82,6 +82,18 @@ cli:
       使用适当的包管理器为检测到的项目类型卸载包。
       支持全局卸载。
 
+  search:
+    help: "搜索包"
+    description: |
+      使用适当的包管理器为检测到的项目类型搜索包。
+      显示包信息，包括版本、描述和作者。
+
+  update:
+    help: "更新包到最新版本"
+    description: |
+      检查过时的包并将其更新到最新版本。
+      支持更新特定包或所有过时的包。
+
   config:
     help: "管理 Depx 配置"
     description: |
@@ -103,6 +115,8 @@ options:
   dev: "安装为开发依赖"
   global: "全局安装/卸载"
   package_manager: "指定要使用的包管理器"
+  limit: "限制搜索结果数量"
+  check: "只检查过时的包，不执行更新"
 
 # 消息
 messages:
@@ -123,6 +137,9 @@ messages:
   package_manager_detected: "📦 使用包管理器：{manager}"
   installing_package: "📦 正在安装包：{package}"
   uninstalling_package: "🗑️ 正在卸载包：{package}"
+  searching_package: "🔍 正在搜索：{package}"
+  updating_packages: "🔄 正在更新包..."
+  checking_outdated: "📋 正在检查过时的包..."
   command_preview: "将要执行的命令：{command}"
   confirm_operation: "是否继续？"
   
@@ -162,6 +179,9 @@ errors:
   project_type_not_detected: "无法检测项目类型。请使用 --type 参数指定。"
   no_package_manager_available: "此项目类型没有可用的包管理器"
   operation_cancelled: "操作已被用户取消"
+  no_packages_found: "未找到包 '{package}'"
+  packages_up_to_date: "所有包都是最新版本！"
+  package_up_to_date: "包 '{package}' 已是最新版本！"
 
 # 成功消息
 success:
@@ -172,6 +192,9 @@ success:
   config_created: "已创建默认配置：{path}"
   package_installed: "✅ 包安装成功：{package}"
   package_uninstalled: "✅ 包卸载成功：{package}"
+  packages_updated: "✅ 更新成功完成！"
+  search_completed: "✅ 搜索完成"
+  update_completed: "✅ 更新完成"
 
 # 状态消息
 status:
@@ -182,3 +205,6 @@ status:
   cleaning: "正在清理..."
   installing: "正在安装包..."
   uninstalling: "正在卸载包..."
+  searching: "正在搜索包..."
+  updating: "正在更新包..."
+  checking_outdated: "正在检查过时的包..."

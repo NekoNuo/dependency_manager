@@ -13,8 +13,11 @@ from .package_managers import (
     BasePackageManager,
     CargoManager,
     NPMManager,
+    OutdatedPackage,
     PackageManagerResult,
     PipManager,
+    SearchResult,
+    UpdateResult,
     YarnManager,
 )
 from .scanner import ProjectScanner
@@ -261,3 +264,165 @@ class DependencyManager:
 
         # 执行卸载
         return manager.uninstall(package_name, global_uninstall=global_uninstall)
+
+    def search_package(
+        self,
+        package_name: str,
+        project_path: Optional[Path] = None,
+        project_type: Optional[ProjectType] = None,
+        package_manager: Optional[str] = None,
+        limit: int = 10,
+    ) -> List[SearchResult]:
+        """
+        搜索包
+
+        Args:
+            package_name: 包名或关键词
+            project_path: 项目路径
+            project_type: 项目类型
+            package_manager: 指定的包管理器
+            limit: 限制结果数量
+
+        Returns:
+            搜索结果列表
+        """
+        # 如果没有指定项目类型，尝试检测
+        if not project_type and project_path:
+            project_type = self.detect_project_type(project_path)
+
+        # 获取包管理器
+        manager = None
+        if package_manager:
+            # 使用指定的包管理器
+            try:
+                manager_type = PackageManagerType(package_manager.lower())
+                manager_class = self.package_managers.get(manager_type)
+                if manager_class:
+                    manager = manager_class(project_path)
+            except ValueError:
+                return []
+        elif project_type:
+            manager = self.detect_preferred_package_manager(project_path, project_type)
+
+        if not manager or not manager.is_available():
+            return []
+
+        # 执行搜索
+        return manager.search(package_name, limit=limit)
+
+    def check_outdated_packages(
+        self,
+        project_path: Optional[Path] = None,
+        project_type: Optional[ProjectType] = None,
+        package_manager: Optional[str] = None,
+    ) -> List[OutdatedPackage]:
+        """
+        检查过时的包
+
+        Args:
+            project_path: 项目路径
+            project_type: 项目类型
+            package_manager: 指定的包管理器
+
+        Returns:
+            过时包列表
+        """
+        # 如果没有指定项目类型，尝试检测
+        if not project_type and project_path:
+            project_type = self.detect_project_type(project_path)
+
+        if not project_type:
+            return []
+
+        # 获取包管理器
+        manager = None
+        if package_manager:
+            # 使用指定的包管理器
+            try:
+                manager_type = PackageManagerType(package_manager.lower())
+                manager_class = self.package_managers.get(manager_type)
+                if manager_class:
+                    manager = manager_class(project_path)
+            except ValueError:
+                return []
+        else:
+            # 自动检测包管理器
+            manager = self.detect_preferred_package_manager(project_path, project_type)
+
+        if not manager or not manager.is_available():
+            return []
+
+        # 检查过时的包
+        return manager.check_outdated()
+
+    def update_packages(
+        self,
+        package_name: Optional[str] = None,
+        project_path: Optional[Path] = None,
+        project_type: Optional[ProjectType] = None,
+        package_manager: Optional[str] = None,
+        dev: bool = False,
+    ) -> UpdateResult:
+        """
+        更新包
+
+        Args:
+            package_name: 包名，None 表示更新所有包
+            project_path: 项目路径
+            project_type: 项目类型
+            package_manager: 指定的包管理器
+            dev: 是否包括开发依赖
+
+        Returns:
+            更新结果
+        """
+        # 如果没有指定项目类型，尝试检测
+        if not project_type and project_path:
+            project_type = self.detect_project_type(project_path)
+
+        if not project_type:
+            return UpdateResult(
+                success=False,
+                message="无法检测项目类型，请使用 --type 参数指定",
+                updated_packages=[],
+                error="Unknown project type",
+            )
+
+        # 获取包管理器
+        manager = None
+        if package_manager:
+            # 使用指定的包管理器
+            try:
+                manager_type = PackageManagerType(package_manager.lower())
+                manager_class = self.package_managers.get(manager_type)
+                if manager_class:
+                    manager = manager_class(project_path)
+            except ValueError:
+                return UpdateResult(
+                    success=False,
+                    message=f"不支持的包管理器: {package_manager}",
+                    updated_packages=[],
+                    error="Unsupported package manager",
+                )
+        else:
+            # 自动检测包管理器
+            manager = self.detect_preferred_package_manager(project_path, project_type)
+
+        if not manager:
+            return UpdateResult(
+                success=False,
+                message="没有找到可用的包管理器",
+                updated_packages=[],
+                error="No available package manager",
+            )
+
+        if not manager.is_available():
+            return UpdateResult(
+                success=False,
+                message=f"{manager.name} 命令不可用",
+                updated_packages=[],
+                error=f"{manager.name} command not found",
+            )
+
+        # 执行更新
+        return manager.update_package(package_name, dev=dev)

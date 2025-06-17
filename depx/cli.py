@@ -24,6 +24,7 @@ from .core.dependency_manager import DependencyManager
 from .core.exporter import AnalysisExporter
 from .core.global_scanner import GlobalScanner
 from .core.scanner import ProjectScanner
+from .core.package_managers import SearchResult, OutdatedPackage
 from .i18n import (
     auto_detect_and_set_language,
     get_language_detection_info,
@@ -961,6 +962,277 @@ def uninstall(
             console.print(f"[dim]{result.output}[/dim]")
     else:
         console.print(f"\n❌ [red]Uninstallation failed: {result.message}[/red]")
+        if result.error:
+            console.print(f"[dim red]{result.error}[/dim red]")
+
+
+@cli.command()
+@click.argument("package_name", type=str)
+@click.option(
+    "--type",
+    "-t",
+    "project_type",
+    type=click.Choice([pt.value for pt in ProjectType if pt != ProjectType.UNKNOWN]),
+    help="Specify project type",
+)
+@click.option(
+    "--package-manager",
+    "-pm",
+    type=click.Choice(["npm", "yarn", "pip", "cargo"]),
+    help="Specify package manager to use",
+)
+@click.option(
+    "--limit", "-l", default=10, help="Limit number of search results"
+)
+@click.argument("path", type=click.Path(exists=True, path_type=Path), default=".")
+def search(
+    package_name: str,
+    project_type: Optional[str],
+    package_manager: Optional[str],
+    limit: int,
+    path: Path,
+):
+    """Search for packages"""
+
+    console.print(f"\n🔍 Searching for: {package_name}")
+
+    # 自动检测语言并设置
+    auto_detect_and_set_language()
+
+    # 创建依赖管理器
+    dep_manager = DependencyManager()
+
+    # 转换项目类型
+    parsed_project_type = None
+    if project_type:
+        try:
+            parsed_project_type = ProjectType(project_type)
+        except ValueError:
+            console.print(f"[red]Invalid project type: {project_type}[/red]")
+            return
+
+    # 执行搜索
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        search_task = progress.add_task("Searching packages...", total=None)
+
+        results = dep_manager.search_package(
+            package_name=package_name,
+            project_path=path,
+            project_type=parsed_project_type,
+            package_manager=package_manager,
+            limit=limit
+        )
+
+        progress.update(search_task, description="Search completed")
+
+    # 显示结果
+    if not results:
+        console.print(f"[yellow]No packages found for '{package_name}'[/yellow]")
+        return
+
+    console.print(f"\n📦 Found {len(results)} package(s):")
+
+    # 创建搜索结果表格
+    table = Table(title=f"Search Results for '{package_name}'")
+    table.add_column("Name", style="cyan", no_wrap=True)
+    table.add_column("Version", style="green")
+    table.add_column("Description", style="white")
+    table.add_column("Author", style="yellow")
+    table.add_column("Downloads", style="magenta")
+
+    for result in results:
+        table.add_row(
+            result.name,
+            result.version,
+            result.description[:50] + "..." if len(result.description) > 50 else result.description,
+            result.author,
+            result.downloads
+        )
+
+    console.print(table)
+
+    # 显示详细信息（如果只有一个结果）
+    if len(results) == 1:
+        result = results[0]
+        console.print(f"\n📋 Package Details:")
+        details = [
+            f"• Name: {result.name}",
+            f"• Version: {result.version}",
+            f"• Description: {result.description}",
+            f"• Author: {result.author}",
+            f"• Homepage: {result.homepage}",
+            f"• Repository: {result.repository}",
+            f"• License: {result.license}",
+        ]
+        for detail in details:
+            if detail.split(": ", 1)[1]:  # 只显示有值的字段
+                console.print(detail)
+
+
+@cli.command()
+@click.argument("package_name", type=str, required=False)
+@click.option(
+    "--type",
+    "-t",
+    "project_type",
+    type=click.Choice([pt.value for pt in ProjectType if pt != ProjectType.UNKNOWN]),
+    help="Specify project type",
+)
+@click.option(
+    "--package-manager",
+    "-pm",
+    type=click.Choice(["npm", "yarn", "pip", "cargo"]),
+    help="Specify package manager to use",
+)
+@click.option(
+    "--check", "-c", is_flag=True, help="Only check for outdated packages, don't update"
+)
+@click.option(
+    "--dry-run", is_flag=True, help="Show what would be done without actually doing it"
+)
+@click.option(
+    "--dev", "-D", is_flag=True, help="Include development dependencies"
+)
+@click.argument("path", type=click.Path(exists=True, path_type=Path), default=".")
+def update(
+    package_name: Optional[str],
+    project_type: Optional[str],
+    package_manager: Optional[str],
+    check: bool,
+    dry_run: bool,
+    dev: bool,
+    path: Path,
+):
+    """Update packages"""
+
+    if package_name:
+        console.print(f"\n🔄 Updating package: {package_name}")
+    else:
+        console.print(f"\n🔄 Checking for outdated packages...")
+
+    # 自动检测语言并设置
+    auto_detect_and_set_language()
+
+    # 创建依赖管理器
+    dep_manager = DependencyManager()
+
+    # 转换项目类型
+    parsed_project_type = None
+    if project_type:
+        try:
+            parsed_project_type = ProjectType(project_type)
+        except ValueError:
+            console.print(f"[red]Invalid project type: {project_type}[/red]")
+            return
+
+    # 检测项目类型
+    if not parsed_project_type:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            detect_task = progress.add_task("Detecting project type...", total=None)
+            parsed_project_type = dep_manager.detect_project_type(path)
+            progress.update(detect_task, description="Detection completed")
+
+        if parsed_project_type:
+            console.print(f"✅ Detected project type: {parsed_project_type.value}")
+        else:
+            console.print(f"[red]Could not detect project type. Please use --type to specify.[/red]")
+            return
+
+    # 检查过时的包
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        check_task = progress.add_task("Checking for outdated packages...", total=None)
+
+        outdated_packages = dep_manager.check_outdated_packages(
+            project_path=path,
+            project_type=parsed_project_type,
+            package_manager=package_manager
+        )
+
+        progress.update(check_task, description="Check completed")
+
+    if not outdated_packages:
+        console.print("✅ All packages are up to date!")
+        return
+
+    # 过滤特定包（如果指定了）
+    if package_name:
+        outdated_packages = [p for p in outdated_packages if p.name == package_name]
+        if not outdated_packages:
+            console.print(f"✅ Package '{package_name}' is already up to date!")
+            return
+
+    # 显示过时的包
+    console.print(f"\n📋 Found {len(outdated_packages)} outdated package(s):")
+
+    table = Table(title="Outdated Packages")
+    table.add_column("Name", style="cyan", no_wrap=True)
+    table.add_column("Current", style="yellow")
+    table.add_column("Latest", style="green")
+    table.add_column("Type", style="blue")
+
+    for pkg in outdated_packages:
+        table.add_row(
+            pkg.name,
+            pkg.current_version,
+            pkg.latest_version,
+            pkg.package_type
+        )
+
+    console.print(table)
+
+    # 如果只是检查，不执行更新
+    if check:
+        return
+
+    # 预览模式
+    if dry_run:
+        console.print(f"\n[yellow]Dry run mode - no packages will be updated[/yellow]")
+        return
+
+    # 确认更新
+    if not click.confirm("Do you want to update these packages?"):
+        console.print("[yellow]Update cancelled[/yellow]")
+        return
+
+    # 执行更新
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        update_task = progress.add_task("Updating packages...", total=None)
+
+        result = dep_manager.update_packages(
+            package_name=package_name,
+            project_path=path,
+            project_type=parsed_project_type,
+            package_manager=package_manager,
+            dev=dev
+        )
+
+        progress.update(update_task, description="Update completed")
+
+    # 显示结果
+    if result.success:
+        console.print(f"\n✅ Update completed successfully!")
+        if result.updated_packages:
+            console.print(f"Updated {len(result.updated_packages)} package(s)")
+        if result.output:
+            console.print(f"[dim]{result.output}[/dim]")
+    else:
+        console.print(f"\n❌ [red]Update failed: {result.message}[/red]")
         if result.error:
             console.print(f"[dim red]{result.error}[/dim red]")
 

@@ -86,6 +86,18 @@ cli:
       Uninstall packages using the appropriate package manager for the detected project type.
       Supports global uninstallation.
 
+  search:
+    help: "Search for packages"
+    description: |
+      Search for packages using the appropriate package manager for the detected project type.
+      Shows package information including version, description, and author.
+
+  update:
+    help: "Update packages to latest versions"
+    description: |
+      Check for outdated packages and update them to the latest versions.
+      Supports updating specific packages or all outdated packages.
+
   config:
     help: "Manage Depx configuration"
     description: |
@@ -107,6 +119,8 @@ options:
   dev: "Install as development dependency"
   global: "Install/uninstall globally"
   package_manager: "Specify package manager to use"
+  limit: "Limit number of search results"
+  check: "Only check for outdated packages, don't update"
 
 # Messages
 messages:
@@ -127,6 +141,9 @@ messages:
   package_manager_detected: "📦 Using package manager: {manager}"
   installing_package: "📦 Installing package: {package}"
   uninstalling_package: "🗑️ Uninstalling package: {package}"
+  searching_package: "🔍 Searching for: {package}"
+  updating_packages: "🔄 Updating packages..."
+  checking_outdated: "📋 Checking for outdated packages..."
   command_preview: "Command to execute: {command}"
   confirm_operation: "Do you want to proceed?"
   
@@ -166,6 +183,9 @@ errors:
   project_type_not_detected: "Could not detect project type. Please use --type to specify."
   no_package_manager_available: "No package manager available for this project type"
   operation_cancelled: "Operation cancelled by user"
+  no_packages_found: "No packages found for '{package}'"
+  packages_up_to_date: "All packages are up to date!"
+  package_up_to_date: "Package '{package}' is already up to date!"
 
 # Success messages
 success:
@@ -176,6 +196,9 @@ success:
   config_created: "Created default configuration: {path}"
   package_installed: "✅ Package installed successfully: {package}"
   package_uninstalled: "✅ Package uninstalled successfully: {package}"
+  packages_updated: "✅ Update completed successfully!"
+  search_completed: "✅ Search completed"
+  update_completed: "✅ Update completed"
 
 # Status messages
 status:
@@ -186,3 +209,6 @@ status:
   cleaning: "Cleaning..."
   installing: "Installing package..."
   uninstalling: "Uninstalling package..."
+  searching: "Searching packages..."
+  updating: "Updating packages..."
+  checking_outdated: "Checking for outdated packages..."
