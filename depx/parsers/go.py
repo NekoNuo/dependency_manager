@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from ..utils.file_utils import get_directory_size
+from ..utils.toml_utils import safe_load_toml
 from .base import (
     BaseParser,
     DependencyInfo,
@@ -200,18 +201,11 @@ class GoParser(BaseParser):
         """Parse Gopkg.toml file (legacy dep tool)"""
         dependencies = []
 
-        try:
-            import tomllib
-        except ImportError:
-            try:
-                import tomli as tomllib
-            except ImportError:
-                logger.warning("tomllib/tomli not available, cannot parse Gopkg.toml")
-                return dependencies
+        data = safe_load_toml(gopkg_file)
+        if not data:
+            return dependencies
 
         try:
-            with open(gopkg_file, "rb") as f:
-                data = tomllib.load(f)
 
             # Parse constraints
             constraints = data.get("constraint", [])

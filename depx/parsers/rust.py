@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from ..utils.file_utils import get_directory_size
+from ..utils.toml_utils import safe_load_toml
 from .base import (
     BaseParser,
     DependencyInfo,
@@ -106,18 +107,11 @@ class RustParser(BaseParser):
         """Parse Cargo.toml dependencies"""
         dependencies = []
 
-        try:
-            import tomllib
-        except ImportError:
-            try:
-                import tomli as tomllib
-            except ImportError:
-                logger.warning("tomllib/tomli not available, cannot parse Cargo.toml")
-                return dependencies
+        data = safe_load_toml(cargo_toml)
+        if not data:
+            return dependencies
 
         try:
-            with open(cargo_toml, "rb") as f:
-                data = tomllib.load(f)
 
             # Parse regular dependencies
             deps = data.get("dependencies", {})
@@ -161,17 +155,11 @@ class RustParser(BaseParser):
         """Parse Cargo.lock for exact versions"""
         lock_deps = {}
 
-        try:
-            import tomllib
-        except ImportError:
-            try:
-                import tomli as tomllib
-            except ImportError:
-                return lock_deps
+        data = safe_load_toml(cargo_lock)
+        if not data:
+            return lock_deps
 
         try:
-            with open(cargo_lock, "rb") as f:
-                data = tomllib.load(f)
 
             packages = data.get("package", [])
             for package in packages:
