@@ -74,6 +74,18 @@ cli:
       Export project information, dependencies, or analysis reports
       to JSON, CSV, or HTML formats.
     
+  install:
+    help: "Install dependencies for projects"
+    description: |
+      Install packages using the appropriate package manager for the detected project type.
+      Supports development dependencies and global installation.
+
+  uninstall:
+    help: "Uninstall dependencies from projects"
+    description: |
+      Uninstall packages using the appropriate package manager for the detected project type.
+      Supports global uninstallation.
+
   config:
     help: "Manage Depx configuration"
     description: |
@@ -92,6 +104,9 @@ options:
   dry_run: "Show what would be done without actually doing it"
   format: "Output format for export"
   output: "Output file path"
+  dev: "Install as development dependency"
+  global: "Install/uninstall globally"
+  package_manager: "Specify package manager to use"
 
 # Messages
 messages:
@@ -107,6 +122,13 @@ messages:
   cleanup_types: "🎯 Cleanup types: {types}"
   dry_run_mode: "🔍 Mode: Dry run"
   live_cleaning_mode: "🔍 Mode: Live cleaning"
+  detecting_project_type: "🔍 Detecting project type..."
+  project_type_detected: "✅ Detected project type: {type}"
+  package_manager_detected: "📦 Using package manager: {manager}"
+  installing_package: "📦 Installing package: {package}"
+  uninstalling_package: "🗑️ Uninstalling package: {package}"
+  command_preview: "Command to execute: {command}"
+  confirm_operation: "Do you want to proceed? (y/N)"
   
 # Table headers
 tables:
@@ -139,6 +161,11 @@ errors:
   parse_failed: "Failed to parse project: {error}"
   config_load_failed: "Failed to load configuration: {error}"
   export_failed: "Export failed: {error}"
+  invalid_package_name: "Invalid package name: {name}"
+  package_manager_not_found: "Package manager not found: {manager}"
+  project_type_not_detected: "Could not detect project type. Please use --type to specify."
+  no_package_manager_available: "No package manager available for this project type"
+  operation_cancelled: "Operation cancelled by user"
 
 # Success messages
 success:
@@ -147,6 +174,8 @@ success:
   export_completed: "Export completed"
   cleanup_completed: "Cleanup completed successfully!"
   config_created: "Created default configuration: {path}"
+  package_installed: "✅ Package installed successfully: {package}"
+  package_uninstalled: "✅ Package uninstalled successfully: {package}"
 
 # Status messages
 status:
@@ -155,3 +184,5 @@ status:
   creating_cleanup_plan: "Creating cleanup plan..."
   exporting: "Exporting..."
   cleaning: "Cleaning..."
+  installing: "Installing package..."
+  uninstalling: "Uninstalling package..."

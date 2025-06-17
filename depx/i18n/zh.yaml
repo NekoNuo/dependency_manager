@@ -70,6 +70,18 @@ cli:
     description: |
       将项目信息、依赖或分析报告导出为 JSON、CSV 或 HTML 格式。
     
+  install:
+    help: "为项目安装依赖"
+    description: |
+      使用适当的包管理器为检测到的项目类型安装包。
+      支持开发依赖和全局安装。
+
+  uninstall:
+    help: "从项目中卸载依赖"
+    description: |
+      使用适当的包管理器为检测到的项目类型卸载包。
+      支持全局卸载。
+
   config:
     help: "管理 Depx 配置"
     description: |
@@ -88,6 +100,9 @@ options:
   dry_run: "显示将要执行的操作但不实际执行"
   format: "导出的输出格式"
   output: "输出文件路径"
+  dev: "安装为开发依赖"
+  global: "全局安装/卸载"
+  package_manager: "指定要使用的包管理器"
 
 # 消息
 messages:
@@ -103,6 +118,13 @@ messages:
   cleanup_types: "🎯 清理类型：{types}"
   dry_run_mode: "🔍 模式：干运行"
   live_cleaning_mode: "🔍 模式：实际清理"
+  detecting_project_type: "🔍 正在检测项目类型..."
+  project_type_detected: "✅ 检测到项目类型：{type}"
+  package_manager_detected: "📦 使用包管理器：{manager}"
+  installing_package: "📦 正在安装包：{package}"
+  uninstalling_package: "🗑️ 正在卸载包：{package}"
+  command_preview: "将要执行的命令：{command}"
+  confirm_operation: "是否继续？(y/N)"
   
 # 表格标题
 tables:
@@ -135,6 +157,11 @@ errors:
   parse_failed: "解析项目失败：{error}"
   config_load_failed: "加载配置失败：{error}"
   export_failed: "导出失败：{error}"
+  invalid_package_name: "无效的包名：{name}"
+  package_manager_not_found: "未找到包管理器：{manager}"
+  project_type_not_detected: "无法检测项目类型。请使用 --type 参数指定。"
+  no_package_manager_available: "此项目类型没有可用的包管理器"
+  operation_cancelled: "操作已被用户取消"
 
 # 成功消息
 success:
@@ -143,6 +170,8 @@ success:
   export_completed: "导出完成"
   cleanup_completed: "清理成功完成！"
   config_created: "已创建默认配置：{path}"
+  package_installed: "✅ 包安装成功：{package}"
+  package_uninstalled: "✅ 包卸载成功：{package}"
 
 # 状态消息
 status:
@@ -151,3 +180,5 @@ status:
   creating_cleanup_plan: "正在创建清理计划..."
   exporting: "正在导出..."
   cleaning: "正在清理..."
+  installing: "正在安装包..."
+  uninstalling: "正在卸载包..."

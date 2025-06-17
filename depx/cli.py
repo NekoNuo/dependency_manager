@@ -20,6 +20,7 @@ from rich.table import Table
 from .config import config_manager, get_config
 from .core.analyzer import DependencyAnalyzer
 from .core.cleaner import DependencyCleaner
+from .core.dependency_manager import DependencyManager
 from .core.exporter import AnalysisExporter
 from .core.global_scanner import GlobalScanner
 from .core.scanner import ProjectScanner
@@ -683,6 +684,282 @@ def export(
         console.print(f"📁 Output file: {output_path.absolute()}")
     else:
         console.print("\n❌ [bold red]Export failed![/bold red]")
+
+
+@cli.command()
+@click.argument("package_name", type=str)
+@click.option(
+    "--type",
+    "-t",
+    "project_type",
+    type=click.Choice([pt.value for pt in ProjectType if pt != ProjectType.UNKNOWN]),
+    help="Specify project type",
+)
+@click.option(
+    "--package-manager",
+    "-pm",
+    type=click.Choice(["npm", "yarn", "pip", "cargo"]),
+    help="Specify package manager to use",
+)
+@click.option(
+    "--dev", "-D", is_flag=True, help="Install as development dependency"
+)
+@click.option(
+    "--global", "-g", "global_install", is_flag=True, help="Install globally"
+)
+@click.option(
+    "--dry-run", is_flag=True, help="Show what would be done without actually doing it"
+)
+@click.argument("path", type=click.Path(exists=True, path_type=Path), default=".")
+def install(
+    package_name: str,
+    project_type: Optional[str],
+    package_manager: Optional[str],
+    dev: bool,
+    global_install: bool,
+    dry_run: bool,
+    path: Path,
+):
+    """Install dependencies for projects"""
+
+    console.print(f"\n📦 {get_text('messages.installing_package').format(package=package_name)}")
+
+    # 自动检测语言并设置
+    auto_detect_and_set_language()
+
+    # 创建依赖管理器
+    dep_manager = DependencyManager()
+
+    # 转换项目类型
+    parsed_project_type = None
+    if project_type:
+        try:
+            parsed_project_type = ProjectType(project_type)
+        except ValueError:
+            console.print(f"[red]{get_text('errors.invalid_path').format(path=project_type)}[/red]")
+            return
+
+    # 如果不是全局安装，使用项目路径
+    project_path = None if global_install else path
+
+    # 检测项目类型
+    if not parsed_project_type and not global_install:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            detect_task = progress.add_task(get_text("messages.detecting_project_type"), total=None)
+            parsed_project_type = dep_manager.detect_project_type(project_path)
+            progress.update(detect_task, description=get_text("success.scan_completed"))
+
+        if parsed_project_type:
+            console.print(f"✅ {get_text('messages.project_type_detected').format(type=parsed_project_type.value)}")
+        else:
+            console.print(f"[red]{get_text('errors.project_type_not_detected')}[/red]")
+            return
+
+    # 获取包管理器
+    manager = None
+    if package_manager:
+        # 使用指定的包管理器
+        try:
+            from .parsers.base import PackageManagerType
+            manager_type = PackageManagerType(package_manager.lower())
+            manager_class = dep_manager.package_managers.get(manager_type)
+            if manager_class:
+                manager = manager_class(project_path)
+        except ValueError:
+            console.print(f"[red]不支持的包管理器: {package_manager}[/red]")
+            return
+    elif parsed_project_type:
+        manager = dep_manager.detect_preferred_package_manager(project_path, parsed_project_type)
+    elif global_install:
+        # 全局安装时，如果没有指定包管理器，默认使用 npm
+        from .core.package_managers import NPMManager
+        manager = NPMManager(None)
+
+    if manager:
+        console.print(f"📦 {get_text('messages.package_manager_detected').format(manager=manager.name)}")
+
+    # 预览命令
+    if dry_run:
+        if manager and hasattr(manager, 'get_install_preview'):
+            preview_cmd = manager.get_install_preview(package_name, dev=dev, global_install=global_install)
+            console.print(f"\n{get_text('messages.command_preview').format(command=preview_cmd)}")
+        console.print(f"[yellow]{get_text('messages.dry_run_mode')}[/yellow]")
+        return
+
+    # 确认操作
+    if not click.confirm(get_text("messages.confirm_operation")):
+        console.print(f"[yellow]{get_text('errors.operation_cancelled')}[/yellow]")
+        return
+
+    # 执行安装
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        install_task = progress.add_task(get_text("status.installing"), total=None)
+
+        result = dep_manager.install_package(
+            package_name=package_name,
+            project_path=project_path,
+            project_type=parsed_project_type,
+            package_manager=package_manager,
+            dev=dev,
+            global_install=global_install
+        )
+
+        if result.success:
+            progress.update(install_task, description=get_text("success.package_installed").format(package=package_name))
+        else:
+            progress.update(install_task, description="Installation failed")
+
+    # 显示结果
+    if result.success:
+        console.print(f"\n✅ {get_text('success.package_installed').format(package=package_name)}")
+        if result.output:
+            console.print(f"[dim]{result.output}[/dim]")
+    else:
+        console.print(f"\n❌ [red]Installation failed: {result.message}[/red]")
+        if result.error:
+            console.print(f"[dim red]{result.error}[/dim red]")
+
+
+@cli.command()
+@click.argument("package_name", type=str)
+@click.option(
+    "--type",
+    "-t",
+    "project_type",
+    type=click.Choice([pt.value for pt in ProjectType if pt != ProjectType.UNKNOWN]),
+    help="Specify project type",
+)
+@click.option(
+    "--package-manager",
+    "-pm",
+    type=click.Choice(["npm", "yarn", "pip", "cargo"]),
+    help="Specify package manager to use",
+)
+@click.option(
+    "--global", "-g", "global_uninstall", is_flag=True, help="Uninstall globally"
+)
+@click.option(
+    "--dry-run", is_flag=True, help="Show what would be done without actually doing it"
+)
+@click.argument("path", type=click.Path(exists=True, path_type=Path), default=".")
+def uninstall(
+    package_name: str,
+    project_type: Optional[str],
+    package_manager: Optional[str],
+    global_uninstall: bool,
+    dry_run: bool,
+    path: Path,
+):
+    """Uninstall dependencies from projects"""
+
+    console.print(f"\n🗑️ {get_text('messages.uninstalling_package').format(package=package_name)}")
+
+    # 自动检测语言并设置
+    auto_detect_and_set_language()
+
+    # 创建依赖管理器
+    dep_manager = DependencyManager()
+
+    # 转换项目类型
+    parsed_project_type = None
+    if project_type:
+        try:
+            parsed_project_type = ProjectType(project_type)
+        except ValueError:
+            console.print(f"[red]{get_text('errors.invalid_path').format(path=project_type)}[/red]")
+            return
+
+    # 如果不是全局卸载，使用项目路径
+    project_path = None if global_uninstall else path
+
+    # 检测项目类型
+    if not parsed_project_type and not global_uninstall:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console,
+        ) as progress:
+            detect_task = progress.add_task(get_text("messages.detecting_project_type"), total=None)
+            parsed_project_type = dep_manager.detect_project_type(project_path)
+            progress.update(detect_task, description=get_text("success.scan_completed"))
+
+        if parsed_project_type:
+            console.print(f"✅ {get_text('messages.project_type_detected').format(type=parsed_project_type.value)}")
+        else:
+            console.print(f"[red]{get_text('errors.project_type_not_detected')}[/red]")
+            return
+
+    # 获取包管理器
+    manager = None
+    if package_manager:
+        # 使用指定的包管理器
+        try:
+            from .parsers.base import PackageManagerType
+            manager_type = PackageManagerType(package_manager.lower())
+            manager_class = dep_manager.package_managers.get(manager_type)
+            if manager_class:
+                manager = manager_class(project_path)
+        except ValueError:
+            console.print(f"[red]不支持的包管理器: {package_manager}[/red]")
+            return
+    elif parsed_project_type:
+        manager = dep_manager.detect_preferred_package_manager(project_path, parsed_project_type)
+    elif global_uninstall:
+        # 全局卸载时，如果没有指定包管理器，默认使用 npm
+        from .core.package_managers import NPMManager
+        manager = NPMManager(None)
+
+    if manager:
+        console.print(f"📦 {get_text('messages.package_manager_detected').format(manager=manager.name)}")
+
+    # 预览命令
+    if dry_run:
+        if manager and hasattr(manager, 'get_uninstall_preview'):
+            preview_cmd = manager.get_uninstall_preview(package_name, global_uninstall=global_uninstall)
+            console.print(f"\n{get_text('messages.command_preview').format(command=preview_cmd)}")
+        console.print(f"[yellow]{get_text('messages.dry_run_mode')}[/yellow]")
+        return
+
+    # 确认操作
+    if not click.confirm(get_text("messages.confirm_operation")):
+        console.print(f"[yellow]{get_text('errors.operation_cancelled')}[/yellow]")
+        return
+
+    # 执行卸载
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console,
+    ) as progress:
+        uninstall_task = progress.add_task(get_text("status.uninstalling"), total=None)
+
+        result = dep_manager.uninstall_package(
+            package_name=package_name,
+            project_path=project_path,
+            project_type=parsed_project_type,
+            package_manager=package_manager,
+            global_uninstall=global_uninstall
+        )
+
+        progress.update(uninstall_task, description=get_text("success.package_uninstalled").format(package=package_name) if result.success else "Uninstallation failed")
+
+    # 显示结果
+    if result.success:
+        console.print(f"\n✅ {get_text('success.package_uninstalled').format(package=package_name)}")
+        if result.output:
+            console.print(f"[dim]{result.output}[/dim]")
+    else:
+        console.print(f"\n❌ [red]Uninstallation failed: {result.message}[/red]")
+        if result.error:
+            console.print(f"[dim red]{result.error}[/dim red]")
 
 
 @cli.command()
