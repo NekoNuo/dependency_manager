@@ -104,8 +104,9 @@ jobs:
   publish-pypi:
     needs: [build, publish-test]
     runs-on: ubuntu-latest
-    # Trigger PyPI publish for: 1) GitHub Release, 2) Manual workflow with PyPI option
+    # Trigger PyPI publish for: 1) Tag push, 2) GitHub Release, 3) Manual workflow with PyPI option
     if: |
+      (github.event_name == 'push' && contains(github.ref, 'refs/tags/')) ||
       (github.event_name == 'release' && github.event.action == 'published') ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_to_pypi == 'true')
     environment:
