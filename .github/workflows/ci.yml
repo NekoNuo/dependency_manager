@@ -68,11 +68,13 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 black isort mypy
+        pip install -r requirements.txt
+        pip install -e .
     
     - name: Run flake8
       run: |
         flake8 depx --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 depx --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 depx --count --exit-zero --max-complexity=10 --max-line-length=88 --extend-ignore=E203,W503 --statistics
     
     - name: Check code formatting with black
       run: |

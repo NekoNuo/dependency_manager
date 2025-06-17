@@ -8,9 +8,9 @@ import logging
 import re
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
-from ..utils.file_utils import get_directory_size, safe_read_json
+from ..utils.file_utils import get_directory_size
 from .base import BaseParser, DependencyInfo, DependencyType, ProjectInfo, ProjectType
 
 logger = logging.getLogger(__name__)

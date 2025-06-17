@@ -4,10 +4,9 @@ PHP project parser
 Parse PHP projects with composer.json and composer.lock files
 """
 
-import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from ..utils.file_utils import get_directory_size, safe_read_json
 from .base import (

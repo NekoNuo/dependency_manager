@@ -6,7 +6,7 @@ Node.js 项目解析器
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from ..utils.file_utils import get_directory_size, safe_read_json
 from .base import BaseParser, DependencyInfo, DependencyType, ProjectInfo, ProjectType

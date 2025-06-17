@@ -7,7 +7,7 @@ Parse C# projects with .csproj, packages.config, and PackageReference files
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 from xml.etree import ElementTree as ET
 
 from ..utils.file_utils import get_directory_size, safe_read_json
@@ -213,7 +213,8 @@ class CSharpParser(BaseParser):
             for package in root.findall("package"):
                 package_id = package.get("id")
                 version = package.get("version")
-                target_framework = package.get("targetFramework")
+                # target_framework = package.get("targetFramework")
+                # Not used currently
 
                 if package_id:
                     dep_info = DependencyInfo(

@@ -24,10 +24,10 @@ from .core.exporter import AnalysisExporter
 from .core.global_scanner import GlobalScanner
 from .core.scanner import ProjectScanner
 from .i18n import (
-    get_text,
-    set_language,
     auto_detect_and_set_language,
     get_language_detection_info,
+    get_text,
+    set_language,
 )
 from .parsers.base import PackageManagerType, ProjectType
 from .utils.file_utils import format_size
@@ -80,7 +80,9 @@ class CustomGroup(click.Group):
                 # 如果翻译失败，使用默认描述
                 formatter.write_paragraph()
                 formatter.write(
-                    "Depx - Local Multi-language Dependency Manager\n\nUnified discovery, transparent information, space optimization, cross-platform support"
+                    "Depx - Local Multi-language Dependency Manager\n\n"
+                    "Unified discovery, transparent information, "
+                    "space optimization, cross-platform support"
                 )
                 formatter.write_paragraph()
 
@@ -98,7 +100,9 @@ class CustomGroup(click.Group):
                     formatter.write(epilog)
                 else:
                     # 使用默认的语言支持信息
-                    from .utils.language_info import format_language_support_info
+                    from .utils.language_info import (
+                        format_language_support_info,
+                    )
 
                     lang_info = format_language_support_info(current_lang)
                     formatter.write_paragraph()
@@ -107,9 +111,10 @@ class CustomGroup(click.Group):
                 # 如果出错，显示基本的语言支持信息
                 formatter.write_paragraph()
                 formatter.write(
-                    "🎯 SUPPORTED LANGUAGES: Node.js, Python, Java, Go, Rust, PHP, C#"
+                    "🎯 SUPPORTED LANGUAGES: Node.js, Python, Java, "
+                    "Go, Rust, PHP, C#"
                 )
-        except Exception as e:
+        except Exception:
             # 如果所有都失败，使用默认的帮助格式
             super().format_help(ctx, formatter)
 
@@ -126,7 +131,8 @@ def cli(verbose: bool, lang: Optional[str]):
     """
     Depx - Local Multi-language Dependency Manager
 
-    Unified discovery, transparent information, space optimization, cross-platform support
+    Unified discovery, transparent information, space optimization,
+    cross-platform support
     """
     # 设置语言
     if lang:
@@ -528,9 +534,10 @@ def clean(path: Path, cleanup_types: tuple, dry_run: bool, confirm: bool):
         return
 
     # Display cleanup plan
-    console.print(f"\n📋 [bold yellow]Cleanup Plan[/bold yellow]")
+    console.print("\n📋 [bold yellow]Cleanup Plan[/bold yellow]")
     console.print(
-        f"💾 Total space to free: [bold green]{format_size(plan.total_size)}[/bold green]"
+        f"💾 Total space to free: "
+        f"[bold green]{format_size(plan.total_size)}[/bold green]"
     )
 
     if plan.project_dependencies:
@@ -577,13 +584,13 @@ def clean(path: Path, cleanup_types: tuple, dry_run: bool, confirm: bool):
         # Display results
         if result.success:
             console.print(
-                f"\n✅ [bold green]Cleanup completed successfully![/bold green]"
+                "\n✅ [bold green]Cleanup completed successfully![/bold green]"
             )
             console.print(f"💾 Freed space: {format_size(result.freed_space)}")
             console.print(f"🗑️  Cleaned items: {len(result.cleaned_items)}")
         else:
             console.print(
-                f"\n⚠️  [bold yellow]Cleanup completed with errors[/bold yellow]"
+                "\n⚠️  [bold yellow]Cleanup completed with errors[/bold yellow]"
             )
             console.print(f"💾 Freed space: {format_size(result.freed_space)}")
             console.print(f"🗑️  Cleaned items: {len(result.cleaned_items)}")
@@ -672,10 +679,10 @@ def export(
         progress.update(scan_task, description="Export completed")
 
     if success:
-        console.print(f"\n✅ [bold green]Export successful![/bold green]")
+        console.print("\n✅ [bold green]Export successful![/bold green]")
         console.print(f"📁 Output file: {output_path.absolute()}")
     else:
-        console.print(f"\n❌ [bold red]Export failed![/bold red]")
+        console.print("\n❌ [bold red]Export failed![/bold red]")
 
 
 @cli.command()
@@ -699,7 +706,7 @@ def config(create: bool, config_path: Optional[Path], show: bool, lang_info: boo
         if config_manager.create_default_config(config_path):
             console.print(f"✅ Created default configuration: {config_path}")
         else:
-            console.print(f"❌ Failed to create configuration file")
+            console.print("❌ Failed to create configuration file")
         return
 
     if show:
@@ -786,13 +793,13 @@ def config(create: bool, config_path: Optional[Path], show: bool, lang_info: boo
             "terminal_locale" in detection_info
             and detection_info["terminal_locale"] != "检测失败"
         ):
-            console.print(f"\n📟 [bold green]Terminal Locale Information:[/bold green]")
+            console.print("\n📟 [bold green]Terminal Locale Information:[/bold green]")
             console.print(
                 Panel(detection_info["terminal_locale"], border_style="green")
             )
 
         # Usage tips
-        console.print(f"\n💡 [bold yellow]Usage Tips:[/bold yellow]")
+        console.print("\n💡 [bold yellow]Usage Tips:[/bold yellow]")
         tips = [
             "• Use 'depx --lang zh' to force Chinese interface",
             "• Use 'depx --lang en' to force English interface",

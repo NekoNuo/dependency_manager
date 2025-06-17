@@ -7,7 +7,7 @@
 import functools
 import logging
 import time
-from typing import Any, Callable, Optional, Type, Union
+from typing import Any, Callable, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -16,31 +16,21 @@ logger = logging.getLogger(__name__)
 class DepxError(Exception):
     """Depx 基础异常类"""
 
-    pass
-
 
 class DependencyParseError(DepxError):
     """依赖解析异常"""
-
-    pass
 
 
 class ProjectScanError(DepxError):
     """项目扫描异常"""
 
-    pass
-
 
 class ConfigurationError(DepxError):
     """配置错误异常"""
 
-    pass
-
 
 class NetworkError(DepxError):
     """网络相关异常"""
-
-    pass
 
 
 def with_retry(

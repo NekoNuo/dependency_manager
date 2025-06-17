@@ -8,7 +8,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any, Dict, Generator, Optional
 
 logger = logging.getLogger(__name__)
 

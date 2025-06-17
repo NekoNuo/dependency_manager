@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from ..parsers.base import DependencyInfo, PackageManagerType, ProjectInfo, ProjectType
+from ..parsers.base import PackageManagerType, ProjectInfo, ProjectType
 from ..utils.file_utils import format_size
 
 logger = logging.getLogger(__name__)
@@ -68,7 +68,8 @@ class DependencyCleaner:
 
         Args:
             projects: List of projects to analyze
-            cleanup_types: Types of cleanup to include ['dev', 'cache', 'unused', 'large']
+            cleanup_types: Types of cleanup to include
+                ['dev', 'cache', 'unused', 'large']
 
         Returns:
             Cleanup plan
@@ -320,7 +321,8 @@ class DependencyCleaner:
         """Clean a global cache"""
         if self.dry_run:
             logger.info(
-                f"[DRY RUN] Would clean cache: {item['name']} ({format_size(item['size'])})"
+                f"[DRY RUN] Would clean cache: {item['name']} "
+                f"({format_size(item['size'])})"
             )
             return True
 
@@ -353,7 +355,8 @@ class DependencyCleaner:
                         result.cleaned_items.append("node_modules")
                         result.freed_space = project.total_size_bytes
                         logger.info(
-                            f"Removed node_modules: {format_size(project.total_size_bytes)}"
+                            f"Removed node_modules: "
+                            f"{format_size(project.total_size_bytes)}"
                         )
                     except Exception as e:
                         result.errors.append(f"Failed to remove node_modules: {e}")
@@ -383,7 +386,8 @@ class DependencyCleaner:
                             result.cleaned_items.append(venv_dir)
                             result.freed_space = project.total_size_bytes
                             logger.info(
-                                f"Removed {venv_dir}: {format_size(project.total_size_bytes)}"
+                                f"Removed {venv_dir}: "
+                                f"{format_size(project.total_size_bytes)}"
                             )
                         except Exception as e:
                             result.errors.append(f"Failed to remove {venv_dir}: {e}")

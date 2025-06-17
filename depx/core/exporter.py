@@ -7,12 +7,11 @@ Support multiple export formats: JSON, CSV, HTML
 import csv
 import json
 import logging
-from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from ..parsers.base import DependencyInfo, GlobalDependencyInfo, ProjectInfo
+from ..parsers.base import GlobalDependencyInfo, ProjectInfo
 from ..utils.file_utils import format_size
 
 logger = logging.getLogger(__name__)
@@ -340,9 +339,11 @@ class AnalysisExporter:
         <h2>Summary</h2>
         <p><strong>Generated:</strong> {self.timestamp}</p>
         <p><strong>Total Projects:</strong> {len(projects)}</p>
-        <p><strong>Total Size:</strong> {format_size(sum(p.total_size_bytes for p in projects))}</p>
+        <p><strong>Total Size:</strong> {format_size(
+            sum(p.total_size_bytes for p in projects)
+        )}</p>
     </div>
-    
+
     <h2>Projects</h2>
     <table>
         <thead>
@@ -401,9 +402,11 @@ class AnalysisExporter:
         <h2>Summary</h2>
         <p><strong>Generated:</strong> {self.timestamp}</p>
         <p><strong>Total Dependencies:</strong> {len(dependencies)}</p>
-        <p><strong>Total Size:</strong> {format_size(sum(d.size_bytes for d in dependencies))}</p>
+        <p><strong>Total Size:</strong> {format_size(
+            sum(d.size_bytes for d in dependencies)
+        )}</p>
     </div>
-    
+
     <h2>Global Dependencies</h2>
     <table>
         <thead>
@@ -463,10 +466,14 @@ class AnalysisExporter:
         <h2>Summary</h2>
         <p><strong>Generated:</strong> {self.timestamp}</p>
         <p><strong>Total Projects:</strong> {summary.get('total_projects', 0)}</p>
-        <p><strong>Total Dependencies:</strong> {summary.get('total_dependencies', 0)}</p>
-        <p><strong>Total Size:</strong> {summary.get('total_size_formatted', 'Unknown')}</p>
+        <p><strong>Total Dependencies:</strong> {summary.get(
+            'total_dependencies', 0
+        )}</p>
+        <p><strong>Total Size:</strong> {summary.get(
+            'total_size_formatted', 'Unknown'
+        )}</p>
     </div>
-    
+
     <div class="section">
         <h2>Largest Dependencies</h2>
         <table>

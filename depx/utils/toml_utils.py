@@ -59,7 +59,7 @@ def safe_load_toml(file_path: Path) -> Optional[Dict[str, Any]]:
         with open(file_path, "r", encoding="utf-8") as f:
             return toml.load(f)
     except ImportError:
-        logger.error(f"无法找到 TOML 解析库。请安装: pip install tomli")
+        logger.error("无法找到 TOML 解析库。请安装: pip install tomli")
         return None
     except Exception as e:
         logger.warning(f"使用 toml 解析失败: {file_path}, 错误: {e}")
@@ -75,21 +75,21 @@ def get_available_toml_library() -> Optional[str]:
         可用的库名称，如果都不可用则返回 None
     """
     try:
-        import tomllib
+        pass
 
         return "tomllib"
     except ImportError:
         pass
 
     try:
-        import tomli
+        pass
 
         return "tomli"
     except ImportError:
         pass
 
     try:
-        import toml
+        pass
 
         return "toml"
     except ImportError:

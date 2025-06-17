@@ -7,10 +7,9 @@
 import logging
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
-from ..parsers.base import DependencyInfo, DependencyType, ProjectInfo, ProjectType
+from ..parsers.base import DependencyType, ProjectInfo, ProjectType
 from ..utils.file_utils import format_size
 
 logger = logging.getLogger(__name__)
@@ -56,7 +55,6 @@ class DependencyAnalyzer:
 
     def __init__(self):
         """初始化分析器"""
-        pass
 
     def analyze_projects(self, projects: List[ProjectInfo]) -> Dict[str, Any]:
         """

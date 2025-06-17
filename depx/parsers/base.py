@@ -100,13 +100,11 @@ class BaseParser(ABC):
     @abstractmethod
     def project_type(self) -> ProjectType:
         """返回解析器支持的项目类型"""
-        pass
 
     @property
     @abstractmethod
     def config_files(self) -> List[str]:
         """返回该类型项目的配置文件名列表"""
-        pass
 
     @abstractmethod
     def can_parse(self, project_path: Path) -> bool:
@@ -119,7 +117,6 @@ class BaseParser(ABC):
         Returns:
             是否可以解析
         """
-        pass
 
     @abstractmethod
     def parse_project(self, project_path: Path) -> Optional[ProjectInfo]:
@@ -132,7 +129,6 @@ class BaseParser(ABC):
         Returns:
             项目信息，解析失败时返回 None
         """
-        pass
 
     @abstractmethod
     def get_dependencies(self, project_info: ProjectInfo) -> List[DependencyInfo]:
@@ -145,7 +141,6 @@ class BaseParser(ABC):
         Returns:
             依赖信息列表
         """
-        pass
 
     def calculate_dependency_sizes(self, project_info: ProjectInfo) -> None:
         """
@@ -155,4 +150,3 @@ class BaseParser(ABC):
             project_info: 项目信息
         """
         # 默认实现，子类可以重写
-        pass

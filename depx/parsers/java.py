@@ -6,12 +6,11 @@ Parse Java projects with Maven (pom.xml) and Gradle (build.gradle)
 
 import logging
 import re
-import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 from xml.etree import ElementTree as ET
 
-from ..utils.file_utils import get_directory_size, safe_read_json
+from ..utils.file_utils import get_directory_size
 from .base import (
     BaseParser,
     DependencyInfo,
@@ -197,7 +196,10 @@ class JavaParser(BaseParser):
                 content = f.read()
 
             # Parse dependencies block
-            dep_pattern = r'(implementation|compile|testImplementation|testCompile|api|compileOnly)\s+["\']([^"\']+)["\']'
+            dep_pattern = (
+                r"(implementation|compile|testImplementation|testCompile|api|"
+                r'compileOnly)\s+["\']([^"\']+)["\']'
+            )
             matches = re.findall(dep_pattern, content)
 
             for scope, dep_string in matches:

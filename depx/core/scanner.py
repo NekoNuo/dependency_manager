@@ -7,7 +7,7 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Dict, Generator, List, Optional, Type
+from typing import Dict, Generator, List, Optional
 
 from ..parsers.base import BaseParser, ProjectInfo, ProjectType
 from ..parsers.csharp import CSharpParser

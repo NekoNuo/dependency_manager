@@ -6,14 +6,12 @@
 
 import json
 import logging
-import os
 import subprocess
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import List, Set
 
 from ..parsers.base import GlobalDependencyInfo, PackageManagerType
-from ..utils.file_utils import get_directory_size, safe_read_json
+from ..utils.file_utils import get_directory_size
 
 logger = logging.getLogger(__name__)
 

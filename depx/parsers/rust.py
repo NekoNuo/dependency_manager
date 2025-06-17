@@ -7,7 +7,7 @@ Parse Rust projects with Cargo.toml and Cargo.lock files
 import logging
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from ..utils.file_utils import get_directory_size
 from ..utils.toml_utils import safe_load_toml

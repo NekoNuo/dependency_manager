@@ -5,10 +5,9 @@
 """
 
 import logging
-import sys
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
-from ..parsers.base import ProjectInfo, ProjectType
+from ..parsers.base import ProjectInfo
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +23,6 @@ try:
         TextColumn,
     )
     from rich.table import Table
-    from rich.text import Text
     from rich.tree import Tree
 
     RICH_AVAILABLE = True
@@ -106,7 +104,8 @@ class DisplayManager:
             for project in projects:
                 print(
                     f"{project.name:<20} {project.project_type.value:<10} "
-                    f"{len(project.dependencies):<8} {self._format_size(project.total_size_bytes):<12} "
+                    f"{len(project.dependencies):<8} "
+                    f"{self._format_size(project.total_size_bytes):<12} "
                     f"{project.path}"
                 )
 
@@ -141,19 +140,25 @@ class DisplayManager:
 [bold]按类型分布[/bold]:
 """
             for ptype, stats in type_stats.items():
-                summary_text += f"  • {ptype}: {stats['count']} 项目, {stats['dependencies']} 依赖, {self._format_size(stats['size'])}\n"
+                summary_text += (
+                    f"  • {ptype}: {stats['count']} 项目, "
+                    f"{stats['dependencies']} 依赖, "
+                    f"{self._format_size(stats['size'])}\n"
+                )
 
             panel = Panel(summary_text.strip(), title="扫描摘要", style="green")
             self.console.print(panel)
         else:
-            print(f"\n扫描摘要:")
+            print("\n扫描摘要:")
             print(f"  总计: {total_projects} 个项目")
             print(f"  依赖总数: {total_dependencies}")
             print(f"  总大小: {self._format_size(total_size)}")
-            print(f"\n按类型分布:")
+            print("\n按类型分布:")
             for ptype, stats in type_stats.items():
                 print(
-                    f"  • {ptype}: {stats['count']} 项目, {stats['dependencies']} 依赖, {self._format_size(stats['size'])}"
+                    f"  • {ptype}: {stats['count']} 项目, "
+                    f"{stats['dependencies']} 依赖, "
+                    f"{self._format_size(stats['size'])}"
                 )
 
     def print_dependencies_tree(self, project: ProjectInfo):
@@ -191,7 +196,8 @@ class DisplayManager:
                     else ""
                 )
                 print(
-                    f"  • {dep.name} {dep.version}{size_info} [{dep.dependency_type.value}]"
+                    f"  • {dep.name} {dep.version}{size_info} "
+                    f"[{dep.dependency_type.value}]"
                 )
 
     def create_progress_bar(self, description: str = "处理中..."):
