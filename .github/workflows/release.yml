@@ -1,0 +1,101 @@
+name: Release Depx
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+        
+    - name: Build package
+      run: python -m build
+      
+    - name: Create standalone scripts
+      run: |
+        # 创建独立运行包
+        mkdir -p dist/standalone
+        
+        # 复制核心文件
+        cp -r depx dist/standalone/
+        cp run_depx.py dist/standalone/
+        cp interactive_depx.py dist/standalone/
+        cp quick_start.py dist/standalone/
+        cp install_and_run.sh dist/standalone/
+        cp install_and_run.ps1 dist/standalone/
+        cp STANDALONE_USAGE.md dist/standalone/README.md
+        cp pyproject.toml dist/standalone/
+        
+        # 创建压缩包
+        cd dist/standalone
+        tar -czf ../depx-standalone.tar.gz .
+        zip -r ../depx-standalone.zip .
+        cd ../..
+        
+    - name: Generate release notes
+      run: |
+        echo "# Depx v${{ github.ref_name }} Release Notes" > release_notes.md
+        echo "" >> release_notes.md
+        echo "## 🚀 一键运行" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### Linux/macOS:" >> release_notes.md
+        echo '```bash' >> release_notes.md
+        echo "curl -fsSL https://raw.githubusercontent.com/NekoNuo/depx/master/install_and_run.sh | bash" >> release_notes.md
+        echo '```' >> release_notes.md
+        echo "" >> release_notes.md
+        echo "### Windows PowerShell:" >> release_notes.md
+        echo '```powershell' >> release_notes.md
+        echo "irm https://raw.githubusercontent.com/NekoNuo/depx/master/install_and_run.ps1 | iex" >> release_notes.md
+        echo '```' >> release_notes.md
+        echo "" >> release_notes.md
+        echo "## 📦 下载方式" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "1. **一键运行** - 使用上面的命令直接运行" >> release_notes.md
+        echo "2. **下载独立包** - 下载 depx-standalone.zip 或 depx-standalone.tar.gz" >> release_notes.md
+        echo "3. **pip 安装** - \`pip install depx\`" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "## ✨ 主要功能" >> release_notes.md
+        echo "" >> release_notes.md
+        echo "- 🔍 **跨语言包搜索** - 支持 npm、pip、cargo、yarn" >> release_notes.md
+        echo "- 📦 **智能包安装** - 自动检测项目类型" >> release_notes.md
+        echo "- 🔄 **包更新管理** - 检查和更新过时依赖" >> release_notes.md
+        echo "- 📊 **依赖分析** - 分析项目依赖结构" >> release_notes.md
+        echo "- 🧹 **依赖清理** - 清理未使用的依赖" >> release_notes.md
+        echo "- 🌍 **多语言界面** - 支持中英文" >> release_notes.md
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/*.whl
+          dist/*.tar.gz
+          dist/depx-standalone.zip
+          dist/depx-standalone.tar.gz
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Publish to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        twine upload dist/*.whl dist/*.tar.gz --skip-existing

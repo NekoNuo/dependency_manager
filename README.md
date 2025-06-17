@@ -30,6 +30,27 @@ Depx 是一个强大的本地依赖管理工具，能够自动识别和分析本
 
 ## 🚀 快速开始
 
+### 🎯 一键运行（推荐）
+
+无需安装，直接运行：
+
+#### Linux/macOS
+```bash
+curl -fsSL https://raw.githubusercontent.com/NekoNuo/depx/master/install_and_run.sh | bash
+```
+
+#### Windows PowerShell
+```powershell
+irm https://raw.githubusercontent.com/NekoNuo/depx/master/install_and_run.ps1 | iex
+```
+
+这些脚本会自动：
+- ✅ 检查系统环境
+- ✅ 下载最新版本
+- ✅ 安装必要依赖
+- ✅ 提供交互界面
+- ✅ 使用完毕后自动清理
+
 ### 安装
 
 #### 从 PyPI 安装（推荐）
