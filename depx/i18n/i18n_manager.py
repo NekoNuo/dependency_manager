@@ -38,12 +38,13 @@ class I18nManager:
                 except Exception as e:
                     logger.warning(f"加载语言文件失败 {lang_file}: {e}")
 
-    def set_language(self, language: str) -> bool:
+    def set_language(self, language: str, silent: bool = False) -> bool:
         """
         设置当前语言
 
         Args:
             language: 语言代码 (en, zh)
+            silent: 是否静默模式（不显示警告）
 
         Returns:
             是否设置成功
@@ -53,7 +54,8 @@ class I18nManager:
             logger.info(f"语言已切换到: {language}")
             return True
         else:
-            logger.warning(f"不支持的语言: {language}")
+            if not silent:
+                logger.warning(f"不支持的语言: {language}")
             return False
 
     def get_current_language(self) -> str:
@@ -138,6 +140,10 @@ class I18nManager:
                         f"语言检测成功: {detected_lang} (方法: {method.__name__})"
                     )
                     return detected_lang
+                elif detected_lang:
+                    logger.debug(
+                        f"检测到不支持的语言: {detected_lang} (方法: {method.__name__})"
+                    )
             except Exception as e:
                 logger.debug(f"语言检测方法 {method.__name__} 失败: {e}")
 
@@ -255,9 +261,9 @@ def get_text(key: str, **kwargs) -> str:
     return _i18n_manager.get_text(key, **kwargs)
 
 
-def set_language(language: str) -> bool:
+def set_language(language: str, silent: bool = False) -> bool:
     """设置语言的便捷函数"""
-    return _i18n_manager.set_language(language)
+    return _i18n_manager.set_language(language, silent)
 
 
 def get_current_language() -> str:
@@ -268,7 +274,7 @@ def get_current_language() -> str:
 def auto_detect_and_set_language():
     """自动检测并设置语言"""
     detected_lang = _i18n_manager.auto_detect_language()
-    _i18n_manager.set_language(detected_lang)
+    _i18n_manager.set_language(detected_lang, silent=True)
     return detected_lang
 
 
