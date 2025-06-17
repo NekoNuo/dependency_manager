@@ -1,0 +1,157 @@
+# English translations for Depx
+
+# CLI main help
+cli:
+  main:
+    description: "Depx - Local Multi-language Dependency Manager"
+    subtitle: "Unified discovery, transparent information, space optimization, cross-platform support"
+    epilog: |
+      
+      🎯 SUPPORTED LANGUAGES:
+      • Node.js    - package.json, node_modules (npm, yarn, pnpm)
+      • Python     - requirements.txt, setup.py, pyproject.toml, Pipfile
+      • Java       - pom.xml (Maven), build.gradle (Gradle)
+      • Go         - go.mod, go.sum, Gopkg.toml
+      • Rust       - Cargo.toml, Cargo.lock
+      • PHP        - composer.json, composer.lock
+      • C#         - .csproj, packages.config, project.json
+      
+      📚 EXAMPLES:
+      
+      Basic usage:
+        depx scan                          # Scan current directory
+        depx scan ~/projects               # Scan specific directory
+        depx analyze                       # Analyze dependencies
+        depx info ./my-project             # Show project details
+      
+      Advanced usage:
+        depx scan --type nodejs --type python  # Scan specific languages
+        depx global-deps --type npm             # Show npm global packages
+        depx clean --type dev --dry-run         # Preview cleanup
+        depx export --format json              # Export to JSON
+      
+      Configuration:
+        depx config --create               # Create config file
+        depx config --show                 # Show current config
+      
+      For more help on specific commands, use:
+        depx COMMAND --help
+
+  # Command descriptions
+  scan:
+    help: "Scan specified directory to discover projects and dependencies"
+    description: |
+      Scan the specified directory to discover all supported project types
+      and their dependencies. Supports parallel processing for better performance.
+    
+  analyze:
+    help: "Analyze project dependencies and generate detailed report"
+    description: |
+      Perform deep analysis of project dependencies, including duplicate detection,
+      size analysis, and cleanup suggestions.
+    
+  info:
+    help: "Display detailed information for a single project"
+    description: |
+      Show comprehensive information about a specific project, including
+      all dependencies, versions, and sizes.
+    
+  global_deps:
+    help: "Scan and display globally installed dependencies"
+    description: |
+      Scan system-wide installed packages from various package managers
+      like npm, pip, yarn, etc.
+    
+  clean:
+    help: "Clean dependencies and caches to free up space"
+    description: |
+      Clean up development dependencies, caches, and unused packages
+      to free up disk space. Supports dry-run mode for safety.
+    
+  export:
+    help: "Export analysis results to various formats"
+    description: |
+      Export project information, dependencies, or analysis reports
+      to JSON, CSV, or HTML formats.
+    
+  config:
+    help: "Manage Depx configuration"
+    description: |
+      Create, view, or modify Depx configuration files.
+      Supports both global and project-specific configurations.
+
+# Option descriptions
+options:
+  verbose: "Enable verbose output with detailed logging"
+  lang: "Set interface language (en, zh)"
+  depth: "Maximum directory depth to scan (default: 5)"
+  type: "Specify project types to scan"
+  parallel: "Enable/disable parallel processing for better performance"
+  sort_by: "Sort results by specified criteria"
+  limit: "Limit number of results to display"
+  dry_run: "Show what would be done without actually doing it"
+  format: "Output format for export"
+  output: "Output file path"
+
+# Messages
+messages:
+  scanning: "🔍 Scanning directory: {path}"
+  scan_depth: "📏 Scan depth: {depth}"
+  parallel_enabled: "⚡ Parallel processing: Enabled"
+  parallel_disabled: "⚡ Parallel processing: Disabled"
+  project_types: "🎯 Project types: {types}"
+  found_projects: "✅ Found {count} projects"
+  no_projects: "No projects found"
+  analyzing: "📊 Analyzing directory: {path}"
+  scan_failed: "Scan failed: {error}"
+  cleanup_types: "🎯 Cleanup types: {types}"
+  dry_run_mode: "🔍 Mode: Dry run"
+  live_cleaning_mode: "🔍 Mode: Live cleaning"
+  
+# Table headers
+tables:
+  projects:
+    title: "Discovered Projects"
+    name: "Project Name"
+    type: "Type"
+    path: "Path"
+    dependencies: "Dependencies"
+    size: "Total Size"
+  
+  dependencies:
+    title: "Dependencies List"
+    name: "Name"
+    version: "Version"
+    type: "Type"
+    size: "Size"
+  
+  global_deps:
+    title: "Global Dependencies"
+    name: "Dependency Name"
+    version: "Version"
+    manager: "Package Manager"
+    size: "Size"
+    path: "Install Path"
+
+# Error messages
+errors:
+  invalid_path: "Invalid path: {path}"
+  parse_failed: "Failed to parse project: {error}"
+  config_load_failed: "Failed to load configuration: {error}"
+  export_failed: "Export failed: {error}"
+
+# Success messages
+success:
+  scan_completed: "Scan completed"
+  analysis_completed: "Analysis completed"
+  export_completed: "Export completed"
+  cleanup_completed: "Cleanup completed successfully!"
+  config_created: "Created default configuration: {path}"
+
+# Status messages
+status:
+  scanning_projects: "Scanning projects..."
+  analyzing_dependencies: "Analyzing dependencies..."
+  creating_cleanup_plan: "Creating cleanup plan..."
+  exporting: "Exporting..."
+  cleaning: "Cleaning..."

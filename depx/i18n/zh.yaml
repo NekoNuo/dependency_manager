@@ -1,0 +1,153 @@
+# 中文翻译文件
+
+# CLI 主要帮助信息
+cli:
+  main:
+    description: "Depx - 本地多语言依赖统一管理器"
+    subtitle: "统一发现、信息透明、空间优化、跨平台支持"
+    epilog: |
+      
+      🎯 支持的编程语言：
+      • Node.js    - package.json, node_modules (npm, yarn, pnpm)
+      • Python     - requirements.txt, setup.py, pyproject.toml, Pipfile
+      • Java       - pom.xml (Maven), build.gradle (Gradle)
+      • Go         - go.mod, go.sum, Gopkg.toml
+      • Rust       - Cargo.toml, Cargo.lock
+      • PHP        - composer.json, composer.lock
+      • C#         - .csproj, packages.config, project.json
+      
+      📚 使用示例：
+      
+      基本用法：
+        depx scan                          # 扫描当前目录
+        depx scan ~/projects               # 扫描指定目录
+        depx analyze                       # 分析依赖关系
+        depx info ./my-project             # 显示项目详情
+      
+      高级用法：
+        depx scan --type nodejs --type python  # 扫描特定语言
+        depx global-deps --type npm             # 显示 npm 全局包
+        depx clean --type dev --dry-run         # 预览清理操作
+        depx export --format json              # 导出为 JSON
+      
+      配置管理：
+        depx config --create               # 创建配置文件
+        depx config --show                 # 显示当前配置
+      
+      查看特定命令的详细帮助：
+        depx COMMAND --help
+
+  # 命令描述
+  scan:
+    help: "扫描指定目录以发现项目和依赖"
+    description: |
+      扫描指定目录以发现所有支持的项目类型及其依赖关系。
+      支持并行处理以提高性能。
+    
+  analyze:
+    help: "分析项目依赖并生成详细报告"
+    description: |
+      对项目依赖进行深度分析，包括重复检测、大小分析和清理建议。
+    
+  info:
+    help: "显示单个项目的详细信息"
+    description: |
+      显示特定项目的综合信息，包括所有依赖、版本和大小。
+    
+  global_deps:
+    help: "扫描并显示全局安装的依赖"
+    description: |
+      扫描系统范围内安装的包，支持 npm、pip、yarn 等多种包管理器。
+    
+  clean:
+    help: "清理依赖和缓存以释放空间"
+    description: |
+      清理开发依赖、缓存和未使用的包以释放磁盘空间。
+      支持干运行模式以确保安全。
+    
+  export:
+    help: "将分析结果导出为各种格式"
+    description: |
+      将项目信息、依赖或分析报告导出为 JSON、CSV 或 HTML 格式。
+    
+  config:
+    help: "管理 Depx 配置"
+    description: |
+      创建、查看或修改 Depx 配置文件。
+      支持全局和项目特定配置。
+
+# 选项描述
+options:
+  verbose: "启用详细输出和调试日志"
+  lang: "设置界面语言 (en, zh)"
+  depth: "最大扫描目录深度（默认：5）"
+  type: "指定要扫描的项目类型"
+  parallel: "启用/禁用并行处理以提高性能"
+  sort_by: "按指定条件排序结果"
+  limit: "限制显示结果数量"
+  dry_run: "显示将要执行的操作但不实际执行"
+  format: "导出的输出格式"
+  output: "输出文件路径"
+
+# 消息
+messages:
+  scanning: "🔍 扫描目录：{path}"
+  scan_depth: "📏 扫描深度：{depth}"
+  parallel_enabled: "⚡ 并行处理：已启用"
+  parallel_disabled: "⚡ 并行处理：已禁用"
+  project_types: "🎯 项目类型：{types}"
+  found_projects: "✅ 发现 {count} 个项目"
+  no_projects: "未发现项目"
+  analyzing: "📊 分析目录：{path}"
+  scan_failed: "扫描失败：{error}"
+  cleanup_types: "🎯 清理类型：{types}"
+  dry_run_mode: "🔍 模式：干运行"
+  live_cleaning_mode: "🔍 模式：实际清理"
+  
+# 表格标题
+tables:
+  projects:
+    title: "发现的项目"
+    name: "项目名称"
+    type: "类型"
+    path: "路径"
+    dependencies: "依赖数量"
+    size: "总大小"
+  
+  dependencies:
+    title: "依赖列表"
+    name: "名称"
+    version: "版本"
+    type: "类型"
+    size: "大小"
+  
+  global_deps:
+    title: "全局依赖"
+    name: "依赖名称"
+    version: "版本"
+    manager: "包管理器"
+    size: "大小"
+    path: "安装路径"
+
+# 错误消息
+errors:
+  invalid_path: "无效路径：{path}"
+  parse_failed: "解析项目失败：{error}"
+  config_load_failed: "加载配置失败：{error}"
+  export_failed: "导出失败：{error}"
+
+# 成功消息
+success:
+  scan_completed: "扫描完成"
+  analysis_completed: "分析完成"
+  export_completed: "导出完成"
+  cleanup_completed: "清理成功完成！"
+  config_created: "已创建默认配置：{path}"
+
+# 状态消息
+status:
+  scanning_projects: "正在扫描项目..."
+  analyzing_dependencies: "正在分析依赖..."
+  creating_cleanup_plan: "正在创建清理计划..."
+  exporting: "正在导出..."
+  cleaning: "正在清理..."
