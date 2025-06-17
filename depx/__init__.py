@@ -4,14 +4,16 @@ Depx - 本地多语言依赖统一管理器
 统一发现、信息透明、空间优化、跨平台支持
 """
 
-__version__ = "0.1.0"
+__version__ = "0.4.0"
 __author__ = "Depx Team"
 __description__ = "本地多语言依赖统一管理器"
 
 from .core.scanner import ProjectScanner
 from .core.analyzer import DependencyAnalyzer
+from .core.global_scanner import GlobalScanner
 
 __all__ = [
     "ProjectScanner",
     "DependencyAnalyzer",
+    "GlobalScanner",
 ]

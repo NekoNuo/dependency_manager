@@ -29,6 +29,22 @@ class DependencyType(Enum):
     DEVELOPMENT = "development"    # 开发依赖
     OPTIONAL = "optional"          # 可选依赖
     PEER = "peer"                 # 同级依赖
+    GLOBAL = "global"             # 全局依赖
+
+
+class PackageManagerType(Enum):
+    """包管理器类型枚举"""
+    NPM = "npm"
+    YARN = "yarn"
+    PNPM = "pnpm"
+    PIP = "pip"
+    CONDA = "conda"
+    CARGO = "cargo"
+    GO = "go"
+    MAVEN = "maven"
+    GRADLE = "gradle"
+    COMPOSER = "composer"
+    UNKNOWN = "unknown"
 
 
 @dataclass
@@ -41,6 +57,18 @@ class DependencyInfo:
     size_bytes: int = 0           # 占用空间（字节）
     install_path: Optional[Path] = None  # 安装路径
     description: Optional[str] = None    # 描述
+
+
+@dataclass
+class GlobalDependencyInfo:
+    """全局依赖信息数据类"""
+    name: str                      # 依赖名称
+    version: str                   # 版本
+    package_manager: PackageManagerType  # 包管理器类型
+    install_path: Path            # 安装路径
+    size_bytes: int = 0           # 占用空间（字节）
+    description: Optional[str] = None    # 描述
+    last_modified: Optional[str] = None  # 最后修改时间
 
 
 @dataclass

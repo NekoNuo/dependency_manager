@@ -26,7 +26,6 @@ wheels/
 htmlcov/
 coverage.xml
 .tox/
-tests/
 
 # Virtual environments
 venv/
@@ -50,3 +49,6 @@ yarn-debug.log
 examples/
 examples/**/node_modules/
 examples/**/__pycache__/
+test-projects/
+bandit-report.json
+safety-report.json

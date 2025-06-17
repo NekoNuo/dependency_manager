@@ -6,8 +6,10 @@ Depx 核心模块
 
 from .scanner import ProjectScanner
 from .analyzer import DependencyAnalyzer
+from .global_scanner import GlobalScanner
 
 __all__ = [
-    "ProjectScanner", 
-    "DependencyAnalyzer"
+    "ProjectScanner",
+    "DependencyAnalyzer",
+    "GlobalScanner"
 ]

@@ -18,7 +18,8 @@ from rich.text import Text
 
 from .core.scanner import ProjectScanner
 from .core.analyzer import DependencyAnalyzer
-from .parsers.base import ProjectType, DependencyType
+from .core.global_scanner import GlobalScanner
+from .parsers.base import ProjectType, DependencyType, PackageManagerType
 from .utils.file_utils import format_size
 
 # 配置日志
@@ -33,7 +34,7 @@ console = Console()
 
 
 @click.group()
-@click.version_option(version="0.1.0")
+@click.version_option(version="0.4.0")
 @click.option('--verbose', '-v', is_flag=True, help='启用详细输出')
 def cli(verbose: bool):
     """
@@ -136,18 +137,72 @@ def analyze(path: Path, depth: int, sort_by: str, limit: int):
 @click.argument('project_path', type=click.Path(exists=True, path_type=Path))
 def info(project_path: Path):
     """显示单个项目的详细信息"""
-    
+
     scanner = ProjectScanner()
-    
+
     console.print(f"\n📋 项目信息: [bold blue]{project_path.absolute()}[/bold blue]")
-    
+
     project = scanner.scan_single_project(project_path)
-    
+
     if not project:
         console.print("[red]无法识别项目类型或解析失败[/red]")
         return
-    
+
     _display_project_info(project)
+
+
+@cli.command()
+@click.option('--type', '-t', 'manager_type',
+              type=click.Choice([pm.value for pm in PackageManagerType if pm != PackageManagerType.UNKNOWN]),
+              help='指定包管理器类型')
+@click.option('--sort-by', '-s', default='size',
+              type=click.Choice(['name', 'size', 'manager']),
+              help='排序方式')
+@click.option('--limit', '-l', default=50, help='显示数量限制')
+def global_deps(manager_type: Optional[str], sort_by: str, limit: int):
+    """扫描和显示全局安装的依赖"""
+
+    console.print("\n🌍 扫描全局依赖...")
+
+    scanner = GlobalScanner()
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console
+    ) as progress:
+        task = progress.add_task("正在扫描全局依赖...", total=None)
+
+        if manager_type:
+            pm_type = PackageManagerType(manager_type)
+            dependencies = scanner.scan_by_package_manager(pm_type)
+        else:
+            dependencies = scanner.scan_all_global_dependencies()
+
+        progress.update(task, description="扫描完成")
+
+    if not dependencies:
+        console.print("\n[yellow]未发现任何全局依赖[/yellow]")
+        return
+
+    # 排序
+    if sort_by == 'name':
+        dependencies.sort(key=lambda x: x.name.lower())
+    elif sort_by == 'size':
+        dependencies.sort(key=lambda x: x.size_bytes, reverse=True)
+    elif sort_by == 'manager':
+        dependencies.sort(key=lambda x: x.package_manager.value)
+
+    console.print(f"\n✅ 发现 [bold green]{len(dependencies)}[/bold green] 个全局依赖")
+
+    # 显示检测到的包管理器
+    detected_managers = scanner.get_detected_package_managers()
+    if detected_managers:
+        manager_names = [pm.value for pm in detected_managers]
+        console.print(f"📦 检测到的包管理器: {', '.join(manager_names)}")
+
+    # 显示全局依赖表格
+    _display_global_dependencies_table(dependencies[:limit])
 
 
 def _display_projects_table(projects):
@@ -227,6 +282,28 @@ def _display_analysis_report(report, sort_by: str, limit: int):
             console.print(f"  潜在节省: {format_size(suggestion['potential_savings'])}")
 
 
+def _display_global_dependencies_table(dependencies):
+    """显示全局依赖表格"""
+    table = Table(title="🌍 全局依赖")
+
+    table.add_column("依赖名称", style="cyan", no_wrap=True)
+    table.add_column("版本", style="magenta")
+    table.add_column("包管理器", style="blue")
+    table.add_column("大小", justify="right", style="yellow")
+    table.add_column("安装路径", style="dim", max_width=50)
+
+    for dep in dependencies:
+        table.add_row(
+            dep.name,
+            dep.version,
+            dep.package_manager.value,
+            format_size(dep.size_bytes),
+            str(dep.install_path) if dep.install_path != Path("unknown") else "未知"
+        )
+
+    console.print(table)
+
+
 def _display_project_info(project):
     """显示单个项目的详细信息"""
     # 项目基本信息
@@ -238,9 +315,9 @@ def _display_project_info(project):
 📦 依赖数量: {len(project.dependencies)}
 💾 总大小: {format_size(project.total_size_bytes)}
     """
-    
+
     console.print(Panel(info_text.strip(), title="📋 项目信息", border_style="blue"))
-    
+
     # 依赖列表
     if project.dependencies:
         dep_table = Table(title="📦 依赖列表")
@@ -248,7 +325,7 @@ def _display_project_info(project):
         dep_table.add_column("版本", style="magenta")
         dep_table.add_column("类型", style="blue")
         dep_table.add_column("大小", justify="right", style="yellow")
-        
+
         for dep in project.dependencies:
             dep_table.add_row(
                 dep.name,
@@ -256,7 +333,7 @@ def _display_project_info(project):
                 dep.dependency_type.value,
                 format_size(dep.size_bytes)
             )
-        
+
         console.print(dep_table)
 
 
