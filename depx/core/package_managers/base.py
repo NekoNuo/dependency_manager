@@ -36,6 +36,7 @@ class SearchResult:
     homepage: str = ""
     repository: str = ""
     license: str = ""
+    package_manager: str = ""  # 包管理器名称
 
 
 @dataclass

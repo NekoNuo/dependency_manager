@@ -1043,6 +1043,7 @@ def search(
     table.add_column("Description", style="white")
     table.add_column("Author", style="yellow")
     table.add_column("Downloads", style="magenta")
+    table.add_column("Package Manager", style="blue", no_wrap=True)
 
     for result in results:
         table.add_row(
@@ -1050,7 +1051,8 @@ def search(
             result.version,
             result.description[:50] + "..." if len(result.description) > 50 else result.description,
             result.author,
-            result.downloads
+            result.downloads,
+            result.package_manager
         )
 
     console.print(table)
@@ -1064,6 +1066,7 @@ def search(
             f"• Version: {result.version}",
             f"• Description: {result.description}",
             f"• Author: {result.author}",
+            f"• Package Manager: {result.package_manager}",
             f"• Homepage: {result.homepage}",
             f"• Repository: {result.repository}",
             f"• License: {result.license}",

@@ -260,7 +260,8 @@ class CargoManager(BasePackageManager):
                             downloads="",
                             homepage="",
                             repository="",
-                            license=""
+                            license="",
+                            package_manager="cargo"
                         )
                         results.append(result)
 

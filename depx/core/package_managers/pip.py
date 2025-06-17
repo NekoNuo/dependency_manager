@@ -180,7 +180,8 @@ class PipManager(BasePackageManager):
                     downloads="",  # PyPI API 不直接提供下载量
                     homepage=info.get("home_page", ""),
                     repository=info.get("project_url", ""),
-                    license=info.get("license", "")
+                    license=info.get("license", ""),
+                    package_manager="pip"
                 )
                 return [result]
 
@@ -206,7 +207,8 @@ class PipManager(BasePackageManager):
                     downloads="",
                     homepage=info.get("Home-page", ""),
                     repository="",
-                    license=info.get("License", "")
+                    license=info.get("License", ""),
+                    package_manager="pip"
                 )
                 return [search_result]
 

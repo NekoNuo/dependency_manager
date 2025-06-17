@@ -189,7 +189,8 @@ class YarnManager(BasePackageManager):
                     downloads=str(item.get("downloads", {}).get("weekly", "")),
                     homepage=item.get("links", {}).get("homepage", ""),
                     repository=item.get("links", {}).get("repository", ""),
-                    license=item.get("license", "")
+                    license=item.get("license", ""),
+                    package_manager="yarn"
                 )
                 results.append(search_result)
 
