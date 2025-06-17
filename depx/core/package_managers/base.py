@@ -56,7 +56,9 @@ class BasePackageManager(ABC):
         pass
 
     @abstractmethod
-    def install(self, package_name: str, dev: bool = False, global_install: bool = False) -> PackageManagerResult:
+    def install(
+        self, package_name: str, dev: bool = False, global_install: bool = False
+    ) -> PackageManagerResult:
         """
         安装包
         
@@ -71,7 +73,9 @@ class BasePackageManager(ABC):
         pass
 
     @abstractmethod
-    def uninstall(self, package_name: str, global_uninstall: bool = False) -> PackageManagerResult:
+    def uninstall(
+        self, package_name: str, global_uninstall: bool = False
+    ) -> PackageManagerResult:
         """
         卸载包
         
@@ -84,7 +88,9 @@ class BasePackageManager(ABC):
         """
         pass
 
-    def run_command(self, cmd: List[str], timeout: int = 300) -> PackageManagerResult:
+    def run_command(
+        self, cmd: List[str], timeout: int = 300
+    ) -> PackageManagerResult:
         """
         执行命令
         
@@ -108,7 +114,9 @@ class BasePackageManager(ABC):
             )
 
             success = result.returncode == 0
-            message = "命令执行成功" if success else f"命令执行失败 (退出码: {result.returncode})"
+            message = (
+                "命令执行成功" if success else f"命令执行失败 (退出码: {result.returncode})"
+            )
 
             return PackageManagerResult(
                 success=success,

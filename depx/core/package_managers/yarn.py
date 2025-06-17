@@ -26,7 +26,9 @@ class YarnManager(BasePackageManager):
         """检查 yarn 是否可用"""
         return self._is_command_available("yarn")
 
-    def install(self, package_name: str, dev: bool = False, global_install: bool = False) -> PackageManagerResult:
+    def install(
+        self, package_name: str, dev: bool = False, global_install: bool = False
+    ) -> PackageManagerResult:
         """
         使用 yarn 安装包
         
@@ -64,7 +66,9 @@ class YarnManager(BasePackageManager):
 
         return self.run_command(cmd)
 
-    def uninstall(self, package_name: str, global_uninstall: bool = False) -> PackageManagerResult:
+    def uninstall(
+        self, package_name: str, global_uninstall: bool = False
+    ) -> PackageManagerResult:
         """
         使用 yarn 卸载包
         
@@ -99,7 +103,9 @@ class YarnManager(BasePackageManager):
 
         return self.run_command(cmd)
 
-    def get_install_preview(self, package_name: str, dev: bool = False, global_install: bool = False) -> str:
+    def get_install_preview(
+        self, package_name: str, dev: bool = False, global_install: bool = False
+    ) -> str:
         """
         获取安装预览命令
         
@@ -117,10 +123,12 @@ class YarnManager(BasePackageManager):
             cmd = ["yarn", "add", package_name]
             if dev:
                 cmd.append("--dev")
-        
+
         return " ".join(cmd)
 
-    def get_uninstall_preview(self, package_name: str, global_uninstall: bool = False) -> str:
+    def get_uninstall_preview(
+        self, package_name: str, global_uninstall: bool = False
+    ) -> str:
         """
         获取卸载预览命令
         
@@ -135,5 +143,5 @@ class YarnManager(BasePackageManager):
             cmd = ["yarn", "global", "remove", package_name]
         else:
             cmd = ["yarn", "remove", package_name]
-        
+
         return " ".join(cmd)

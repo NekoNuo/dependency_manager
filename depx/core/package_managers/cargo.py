@@ -26,7 +26,9 @@ class CargoManager(BasePackageManager):
         """检查 cargo 是否可用"""
         return self._is_command_available("cargo")
 
-    def install(self, package_name: str, dev: bool = False, global_install: bool = False) -> PackageManagerResult:
+    def install(
+        self, package_name: str, dev: bool = False, global_install: bool = False
+    ) -> PackageManagerResult:
         """
         使用 cargo 安装包
         
@@ -66,7 +68,9 @@ class CargoManager(BasePackageManager):
 
         return self.run_command(cmd)
 
-    def uninstall(self, package_name: str, global_uninstall: bool = False) -> PackageManagerResult:
+    def uninstall(
+        self, package_name: str, global_uninstall: bool = False
+    ) -> PackageManagerResult:
         """
         使用 cargo 卸载包
         
@@ -103,7 +107,9 @@ class CargoManager(BasePackageManager):
 
         return self.run_command(cmd)
 
-    def get_install_preview(self, package_name: str, dev: bool = False, global_install: bool = False) -> str:
+    def get_install_preview(
+        self, package_name: str, dev: bool = False, global_install: bool = False
+    ) -> str:
         """
         获取安装预览命令
         
@@ -121,10 +127,12 @@ class CargoManager(BasePackageManager):
             cmd = ["cargo", "add", package_name]
             if dev:
                 cmd.append("--dev")
-        
+
         return " ".join(cmd)
 
-    def get_uninstall_preview(self, package_name: str, global_uninstall: bool = False) -> str:
+    def get_uninstall_preview(
+        self, package_name: str, global_uninstall: bool = False
+    ) -> str:
         """
         获取卸载预览命令
         
@@ -139,5 +147,5 @@ class CargoManager(BasePackageManager):
             cmd = ["cargo", "uninstall", package_name]
         else:
             cmd = ["cargo", "remove", package_name]
-        
+
         return " ".join(cmd)

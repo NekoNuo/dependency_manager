@@ -57,7 +57,9 @@ class DependencyManager:
         project = self.scanner.scan_single_project(project_path)
         return project.project_type if project else None
 
-    def get_available_package_managers(self, project_type: ProjectType, project_path: Optional[Path] = None) -> List[BasePackageManager]:
+    def get_available_package_managers(
+        self, project_type: ProjectType, project_path: Optional[Path] = None
+    ) -> List[BasePackageManager]:
         """
         获取可用的包管理器
         
@@ -80,7 +82,9 @@ class DependencyManager:
 
         return available_managers
 
-    def detect_preferred_package_manager(self, project_path: Path, project_type: ProjectType) -> Optional[BasePackageManager]:
+    def detect_preferred_package_manager(
+        self, project_path: Path, project_type: ProjectType
+    ) -> Optional[BasePackageManager]:
         """
         检测首选的包管理器
         

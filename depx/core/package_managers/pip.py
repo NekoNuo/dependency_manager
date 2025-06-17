@@ -24,7 +24,9 @@ class PipManager(BasePackageManager):
 
     def is_available(self) -> bool:
         """检查 pip 是否可用"""
-        return self._is_command_available("pip") or self._is_command_available("pip3")
+        return self._is_command_available("pip") or self._is_command_available(
+            "pip3"
+        )
 
     def _get_pip_command(self) -> str:
         """获取可用的 pip 命令"""
@@ -35,7 +37,9 @@ class PipManager(BasePackageManager):
         else:
             return "pip"
 
-    def install(self, package_name: str, dev: bool = False, global_install: bool = False) -> PackageManagerResult:
+    def install(
+        self, package_name: str, dev: bool = False, global_install: bool = False
+    ) -> PackageManagerResult:
         """
         使用 pip 安装包
         
@@ -69,7 +73,9 @@ class PipManager(BasePackageManager):
 
         return self.run_command(cmd)
 
-    def uninstall(self, package_name: str, global_uninstall: bool = False) -> PackageManagerResult:
+    def uninstall(
+        self, package_name: str, global_uninstall: bool = False
+    ) -> PackageManagerResult:
         """
         使用 pip 卸载包
         
@@ -102,7 +108,9 @@ class PipManager(BasePackageManager):
 
         return self.run_command(cmd)
 
-    def get_install_preview(self, package_name: str, dev: bool = False, global_install: bool = False) -> str:
+    def get_install_preview(
+        self, package_name: str, dev: bool = False, global_install: bool = False
+    ) -> str:
         """
         获取安装预览命令
         
@@ -118,7 +126,9 @@ class PipManager(BasePackageManager):
         cmd = [pip_cmd, "install", package_name]
         return " ".join(cmd)
 
-    def get_uninstall_preview(self, package_name: str, global_uninstall: bool = False) -> str:
+    def get_uninstall_preview(
+        self, package_name: str, global_uninstall: bool = False
+    ) -> str:
         """
         获取卸载预览命令
         
