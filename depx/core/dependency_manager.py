@@ -272,6 +272,7 @@ class DependencyManager:
         project_type: Optional[ProjectType] = None,
         package_manager: Optional[str] = None,
         limit: int = 10,
+        search_all: bool = False,
     ) -> List[SearchResult]:
         """
         搜索包
@@ -282,33 +283,47 @@ class DependencyManager:
             project_type: 项目类型
             package_manager: 指定的包管理器
             limit: 限制结果数量
+            search_all: 是否搜索所有可用的包管理器
 
         Returns:
             搜索结果列表
         """
-        # 如果没有指定项目类型，尝试检测
-        if not project_type and project_path:
-            project_type = self.detect_project_type(project_path)
-
-        # 获取包管理器
-        manager = None
+        # 如果指定了包管理器，只搜索该包管理器
         if package_manager:
-            # 使用指定的包管理器
             try:
                 manager_type = PackageManagerType(package_manager.lower())
                 manager_class = self.package_managers.get(manager_type)
                 if manager_class:
                     manager = manager_class(project_path)
+                    if manager.is_available():
+                        return manager.search(package_name, limit=limit)
             except ValueError:
-                return []
-        elif project_type:
-            manager = self.detect_preferred_package_manager(project_path, project_type)
-
-        if not manager or not manager.is_available():
+                pass
             return []
 
-        # 执行搜索
-        return manager.search(package_name, limit=limit)
+        # 如果启用搜索所有包管理器
+        if search_all:
+            all_results = []
+            for manager_type, manager_class in self.package_managers.items():
+                manager = manager_class(project_path)
+                if manager.is_available():
+                    try:
+                        results = manager.search(package_name, limit=limit)
+                        all_results.extend(results)
+                    except Exception as e:
+                        logger.debug(f"搜索 {manager_type.value} 失败: {e}")
+            return all_results
+
+        # 默认行为：根据项目类型选择包管理器
+        if not project_type and project_path:
+            project_type = self.detect_project_type(project_path)
+
+        if project_type:
+            manager = self.detect_preferred_package_manager(project_path, project_type)
+            if manager and manager.is_available():
+                return manager.search(package_name, limit=limit)
+
+        return []
 
     def check_outdated_packages(
         self,

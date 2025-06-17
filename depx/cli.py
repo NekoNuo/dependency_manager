@@ -984,12 +984,16 @@ def uninstall(
 @click.option(
     "--limit", "-l", default=10, help="Limit number of search results"
 )
+@click.option(
+    "--all", "-a", is_flag=True, help="Search in all available package managers"
+)
 @click.argument("path", type=click.Path(exists=True, path_type=Path), default=".")
 def search(
     package_name: str,
     project_type: Optional[str],
     package_manager: Optional[str],
     limit: int,
+    all: bool,
     path: Path,
 ):
     """Search for packages"""
@@ -1024,7 +1028,8 @@ def search(
             project_path=path,
             project_type=parsed_project_type,
             package_manager=package_manager,
-            limit=limit
+            limit=limit,
+            search_all=all
         )
 
         progress.update(search_task, description="Search completed")
