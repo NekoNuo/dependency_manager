@@ -10,8 +10,13 @@ from pathlib import Path
 from typing import Dict, Generator, List, Optional, Type
 
 from ..parsers.base import BaseParser, ProjectInfo, ProjectType
+from ..parsers.csharp import CSharpParser
+from ..parsers.go import GoParser
+from ..parsers.java import JavaParser
 from ..parsers.nodejs import NodeJSParser
+from ..parsers.php import PHPParser
 from ..parsers.python import PythonParser
+from ..parsers.rust import RustParser
 from ..utils.file_utils import is_hidden_directory
 
 logger = logging.getLogger(__name__)
@@ -30,10 +35,11 @@ class ProjectScanner:
         parsers = [
             NodeJSParser(),
             PythonParser(),
-            # 后续添加其他语言的解析器
-            # JavaParser(),
-            # GoParser(),
-            # RustParser(),
+            JavaParser(),
+            GoParser(),
+            RustParser(),
+            PHPParser(),
+            CSharpParser(),
         ]
 
         for parser in parsers:

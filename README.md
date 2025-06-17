@@ -317,18 +317,24 @@ depx/
 
 ### ✅ 已支持
 - **Node.js**: package.json, node_modules, npm/yarn/pnpm
-- **Python**: requirements.txt, setup.py, pyproject.toml, Pipfile, venv 🆕
+- **Python**: requirements.txt, setup.py, pyproject.toml, Pipfile, venv
+- **Java**: pom.xml (Maven), build.gradle (Gradle) 🆕
+- **Go**: go.mod, go.sum, Gopkg.toml 🆕
+- **Rust**: Cargo.toml, Cargo.lock 🆕
+- **PHP**: composer.json, composer.lock 🆕
+- **C#**: .csproj, packages.config, project.json 🆕
 - **全局依赖**: npm 全局包、pip 全局包、yarn 全局包
-- **依赖清理**: 开发依赖、缓存文件、大型依赖 🆕
-- **导出功能**: JSON、CSV、HTML 格式 🆕
-- **配置管理**: YAML 配置文件支持 🆕
+- **依赖清理**: 开发依赖、缓存文件、大型依赖
+- **导出功能**: JSON、CSV、HTML 格式
+- **配置管理**: YAML 配置文件支持
 
 ### 🚧 计划支持
-- **Java**: pom.xml, build.gradle, Maven/Gradle 缓存
-- **Go**: go.mod, go.sum, GOPATH/GOMODCACHE
-- **Rust**: Cargo.toml, Cargo.lock, ~/.cargo
-- **PHP**: composer.json, vendor/
-- **C#**: *.csproj, packages.config, NuGet 缓存
+- **Ruby**: Gemfile, Gemfile.lock
+- **Swift**: Package.swift
+- **Kotlin**: build.gradle.kts
+- **Dart**: pubspec.yaml
+- **Scala**: build.sbt
+- **Haskell**: cabal, stack.yaml
 - **依赖安全扫描**: 检查已知漏洞
 - **依赖更新检查**: 检查过时的依赖
 

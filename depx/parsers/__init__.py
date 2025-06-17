@@ -11,8 +11,13 @@ from .base import (
     PackageManagerType,
     ProjectInfo,
 )
+from .csharp import CSharpParser
+from .go import GoParser
+from .java import JavaParser
 from .nodejs import NodeJSParser
+from .php import PHPParser
 from .python import PythonParser
+from .rust import RustParser
 
 __all__ = [
     "BaseParser",
@@ -22,4 +27,9 @@ __all__ = [
     "PackageManagerType",
     "NodeJSParser",
     "PythonParser",
+    "JavaParser",
+    "GoParser",
+    "RustParser",
+    "PHPParser",
+    "CSharpParser",
 ]
