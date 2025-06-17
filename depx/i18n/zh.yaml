@@ -124,7 +124,7 @@ messages:
   installing_package: "📦 正在安装包：{package}"
   uninstalling_package: "🗑️ 正在卸载包：{package}"
   command_preview: "将要执行的命令：{command}"
-  confirm_operation: "是否继续？(y/N)"
+  confirm_operation: "是否继续？"
   
 # 表格标题
 tables:

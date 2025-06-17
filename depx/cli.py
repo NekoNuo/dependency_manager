@@ -722,7 +722,7 @@ def install(
 ):
     """Install dependencies for projects"""
 
-    console.print(f"\n📦 {get_text('messages.installing_package').format(package=package_name)}")
+    console.print(f"\n{get_text('messages.installing_package').format(package=package_name)}")
 
     # 自动检测语言并设置
     auto_detect_and_set_language()
@@ -754,7 +754,7 @@ def install(
             progress.update(detect_task, description=get_text("success.scan_completed"))
 
         if parsed_project_type:
-            console.print(f"✅ {get_text('messages.project_type_detected').format(type=parsed_project_type.value)}")
+            console.print(f"{get_text('messages.project_type_detected').format(type=parsed_project_type.value)}")
         else:
             console.print(f"[red]{get_text('errors.project_type_not_detected')}[/red]")
             return
@@ -780,7 +780,7 @@ def install(
         manager = NPMManager(None)
 
     if manager:
-        console.print(f"📦 {get_text('messages.package_manager_detected').format(manager=manager.name)}")
+        console.print(f"{get_text('messages.package_manager_detected').format(manager=manager.name)}")
 
     # 预览命令
     if dry_run:
@@ -813,13 +813,13 @@ def install(
         )
 
         if result.success:
-            progress.update(install_task, description=get_text("success.package_installed").format(package=package_name))
+            progress.update(install_task, description=get_text("status.installing") + " - " + get_text("success.scan_completed"))
         else:
             progress.update(install_task, description="Installation failed")
 
     # 显示结果
     if result.success:
-        console.print(f"\n✅ {get_text('success.package_installed').format(package=package_name)}")
+        console.print(f"\n{get_text('success.package_installed').format(package=package_name)}")
         if result.output:
             console.print(f"[dim]{result.output}[/dim]")
     else:
@@ -860,7 +860,7 @@ def uninstall(
 ):
     """Uninstall dependencies from projects"""
 
-    console.print(f"\n🗑️ {get_text('messages.uninstalling_package').format(package=package_name)}")
+    console.print(f"\n{get_text('messages.uninstalling_package').format(package=package_name)}")
 
     # 自动检测语言并设置
     auto_detect_and_set_language()
@@ -892,7 +892,7 @@ def uninstall(
             progress.update(detect_task, description=get_text("success.scan_completed"))
 
         if parsed_project_type:
-            console.print(f"✅ {get_text('messages.project_type_detected').format(type=parsed_project_type.value)}")
+            console.print(f"{get_text('messages.project_type_detected').format(type=parsed_project_type.value)}")
         else:
             console.print(f"[red]{get_text('errors.project_type_not_detected')}[/red]")
             return
@@ -918,7 +918,7 @@ def uninstall(
         manager = NPMManager(None)
 
     if manager:
-        console.print(f"📦 {get_text('messages.package_manager_detected').format(manager=manager.name)}")
+        console.print(f"{get_text('messages.package_manager_detected').format(manager=manager.name)}")
 
     # 预览命令
     if dry_run:
@@ -949,11 +949,14 @@ def uninstall(
             global_uninstall=global_uninstall
         )
 
-        progress.update(uninstall_task, description=get_text("success.package_uninstalled").format(package=package_name) if result.success else "Uninstallation failed")
+        if result.success:
+            progress.update(uninstall_task, description=get_text("status.uninstalling") + " - " + get_text("success.scan_completed"))
+        else:
+            progress.update(uninstall_task, description="Uninstallation failed")
 
     # 显示结果
     if result.success:
-        console.print(f"\n✅ {get_text('success.package_uninstalled').format(package=package_name)}")
+        console.print(f"\n{get_text('success.package_uninstalled').format(package=package_name)}")
         if result.output:
             console.print(f"[dim]{result.output}[/dim]")
     else:

@@ -128,7 +128,7 @@ messages:
   installing_package: "📦 Installing package: {package}"
   uninstalling_package: "🗑️ Uninstalling package: {package}"
   command_preview: "Command to execute: {command}"
-  confirm_operation: "Do you want to proceed? (y/N)"
+  confirm_operation: "Do you want to proceed?"
   
 # Table headers
 tables:

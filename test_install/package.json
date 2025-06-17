@@ -1,1 +1,1 @@
-{"name":"test-project","version":"1.0.0"}
+{"name":"test-project","version":"1.0.0","dependencies":{"lodash":"^4.17.21"}}
