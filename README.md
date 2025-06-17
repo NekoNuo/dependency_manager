@@ -334,26 +334,30 @@ pytest --cov=depx
 
 项目配置了 GitHub Actions 自动发布流程：
 
-#### 发布到 TestPyPI（测试）
+#### 🧪 测试发布（TestPyPI）
 ```bash
-# 1. 推送标签触发测试发布
+# 推送标签触发测试发布
 git tag v0.4.0
 git push origin v0.4.0
 
-# 2. 或者手动触发工作流
-# 在 GitHub 仓库的 Actions 页面手动运行 "Build and Publish to PyPI" 工作流
+# 结果：发布到 TestPyPI，不会发布到正式 PyPI
 ```
 
-#### 发布到 PyPI（正式）
+#### 🚀 正式发布（PyPI）
 ```bash
-# 1. 在 GitHub 上创建 Release
-# 2. GitHub Actions 会自动构建并发布到 PyPI
+# 方式 1: 创建 GitHub Release（推荐）
+# 在 GitHub 上创建 Release，自动发布到 PyPI
+
+# 方式 2: 手动触发工作流
+# 在 Actions 页面手动运行，选择 "Publish to PyPI: true"
 ```
 
-#### 配置 Secrets
+#### 🔧 配置 Secrets
 在 GitHub 仓库设置中添加以下 Secrets：
 - `PYPI_API_TOKEN`: PyPI API Token
 - `TEST_PYPI_API_TOKEN`: TestPyPI API Token
+
+详细发布指南请查看 [PUBLISHING_GUIDE.md](PUBLISHING_GUIDE.md)
 
 ### 手动发布
 
