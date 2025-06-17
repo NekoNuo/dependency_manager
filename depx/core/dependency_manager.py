@@ -119,6 +119,32 @@ class DependencyManager:
 
         return None
 
+    def _is_package_manager_compatible(
+        self, manager_type: PackageManagerType, project_type: Optional[ProjectType]
+    ) -> bool:
+        """
+        检查包管理器是否与项目类型兼容
+
+        Args:
+            manager_type: 包管理器类型
+            project_type: 项目类型
+
+        Returns:
+            是否兼容
+        """
+        if not project_type:
+            return True  # 如果无法检测项目类型，允许使用任何包管理器
+
+        compatibility_map = {
+            PackageManagerType.NPM: [ProjectType.NODEJS],
+            PackageManagerType.YARN: [ProjectType.NODEJS],
+            PackageManagerType.PIP: [ProjectType.PYTHON],
+            PackageManagerType.CARGO: [ProjectType.RUST],
+        }
+
+        compatible_types = compatibility_map.get(manager_type, [])
+        return project_type in compatible_types
+
     def install_package(
         self,
         package_name: str,
@@ -160,6 +186,16 @@ class DependencyManager:
             # 使用指定的包管理器
             try:
                 manager_type = PackageManagerType(package_manager.lower())
+
+                # 检查包管理器与项目类型的兼容性
+                if not self._is_package_manager_compatible(manager_type, project_type):
+                    return PackageManagerResult(
+                        success=False,
+                        message=f"包管理器 {package_manager} 与项目类型 {project_type.value if project_type else 'unknown'} 不兼容。请在对应的项目目录中使用，或使用 --type 参数指定正确的项目类型。",
+                        command="",
+                        error=f"Package manager {package_manager} is not compatible with project type {project_type.value if project_type else 'unknown'}",
+                    )
+
                 manager_class = self.package_managers.get(manager_type)
                 if manager_class:
                     manager = manager_class(project_path)

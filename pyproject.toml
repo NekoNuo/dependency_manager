@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "depx"
-version = "0.7.0"
+version = "0.8.0"
 description = "本地多语言依赖统一管理器"
 readme = "README.md"
 license = {text = "MIT"}
