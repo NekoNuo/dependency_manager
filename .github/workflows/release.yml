@@ -26,7 +26,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install build twine
+        pip install build
         
     - name: Build package
       run: |
@@ -76,7 +76,7 @@ jobs:
         echo "" >> release_notes.md
         echo "1. **一键运行** - 使用上面的命令直接运行" >> release_notes.md
         echo "2. **下载独立包** - 下载 depx-standalone.zip 或 depx-standalone.tar.gz" >> release_notes.md
-        echo "3. **pip 安装** - \`pip install depx\`" >> release_notes.md
+        echo "3. **下载源码** - 下载 .whl 或 .tar.gz 文件本地安装" >> release_notes.md
         echo "" >> release_notes.md
         echo "## ✨ 主要功能" >> release_notes.md
         echo "" >> release_notes.md
@@ -96,18 +96,11 @@ jobs:
           dist/depx-standalone.zip
           dist/depx-standalone.tar.gz
         body_path: release_notes.md
-        draft: false
+        draft: falsec
         prerelease: false
         make_latest: true
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ github.token }}
         
-    - name: Publish to PyPI
-      if: ${{ secrets.PYPI_API_TOKEN != '' }}
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: |
-        echo "Publishing to PyPI..."
-        twine upload dist/*.whl dist/*.tar.gz --skip-existing --verbose || echo "Upload failed or package already exists"
+
