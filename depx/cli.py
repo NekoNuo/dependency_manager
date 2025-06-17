@@ -16,7 +16,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
-from rich.text import Text
 
 from .config import config_manager, get_config
 from .core.analyzer import DependencyAnalyzer
@@ -24,10 +23,14 @@ from .core.cleaner import DependencyCleaner
 from .core.exporter import AnalysisExporter
 from .core.global_scanner import GlobalScanner
 from .core.scanner import ProjectScanner
-from .i18n import get_text, set_language, auto_detect_and_set_language, get_language_detection_info
-from .parsers.base import DependencyType, PackageManagerType, ProjectType
+from .i18n import (
+    get_text,
+    set_language,
+    auto_detect_and_set_language,
+    get_language_detection_info,
+)
+from .parsers.base import PackageManagerType, ProjectType
 from .utils.file_utils import format_size
-from .utils.language_info import format_language_support_info
 
 # Set UTF-8 encoding for Windows compatibility
 if sys.platform.startswith("win"):
@@ -58,6 +61,7 @@ class CustomGroup(click.Group):
         try:
             # 获取当前语言
             from .i18n import get_current_language
+
             current_lang = get_current_language()
 
             # 基本帮助信息
@@ -75,7 +79,9 @@ class CustomGroup(click.Group):
             except Exception:
                 # 如果翻译失败，使用默认描述
                 formatter.write_paragraph()
-                formatter.write("Depx - Local Multi-language Dependency Manager\n\nUnified discovery, transparent information, space optimization, cross-platform support")
+                formatter.write(
+                    "Depx - Local Multi-language Dependency Manager\n\nUnified discovery, transparent information, space optimization, cross-platform support"
+                )
                 formatter.write_paragraph()
 
             # 选项
@@ -93,25 +99,28 @@ class CustomGroup(click.Group):
                 else:
                     # 使用默认的语言支持信息
                     from .utils.language_info import format_language_support_info
+
                     lang_info = format_language_support_info(current_lang)
                     formatter.write_paragraph()
                     formatter.write(lang_info)
             except Exception:
                 # 如果出错，显示基本的语言支持信息
                 formatter.write_paragraph()
-                formatter.write("🎯 SUPPORTED LANGUAGES: Node.js, Python, Java, Go, Rust, PHP, C#")
+                formatter.write(
+                    "🎯 SUPPORTED LANGUAGES: Node.js, Python, Java, Go, Rust, PHP, C#"
+                )
         except Exception as e:
             # 如果所有都失败，使用默认的帮助格式
             super().format_help(ctx, formatter)
 
 
 @click.group(cls=CustomGroup)
-@click.version_option(version="0.5.1")
-@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output with detailed logging")
+@click.version_option(version="0.6.0")
 @click.option(
-    "--lang",
-    type=click.Choice(["en", "zh"]),
-    help="Set interface language (en, zh)"
+    "--verbose", "-v", is_flag=True, help="Enable verbose output with detailed logging"
+)
+@click.option(
+    "--lang", type=click.Choice(["en", "zh"]), help="Set interface language (en, zh)"
 )
 def cli(verbose: bool, lang: Optional[str]):
     """
@@ -130,7 +139,9 @@ def cli(verbose: bool, lang: Optional[str]):
 
 @cli.command()
 @click.argument("path", type=click.Path(exists=True, path_type=Path), default=".")
-@click.option("--depth", "-d", default=5, help="Maximum directory depth to scan (default: 5)")
+@click.option(
+    "--depth", "-d", default=5, help="Maximum directory depth to scan (default: 5)"
+)
 @click.option(
     "--type",
     "-t",
@@ -140,21 +151,25 @@ def cli(verbose: bool, lang: Optional[str]):
     help="Specify project types to scan",
 )
 @click.option(
-    "--parallel/--no-parallel", default=True, help="Enable/disable parallel processing for better performance"
+    "--parallel/--no-parallel",
+    default=True,
+    help="Enable/disable parallel processing for better performance",
 )
 def scan(path: Path, depth: int, project_types: tuple, parallel: bool):
     """Scan specified directory to discover projects and dependencies"""
 
     console.print(f"\n{get_text('messages.scanning', path=path.absolute())}")
-    console.print(get_text('messages.scan_depth', depth=depth))
+    console.print(get_text("messages.scan_depth", depth=depth))
 
     if parallel:
-        console.print(get_text('messages.parallel_enabled'))
+        console.print(get_text("messages.parallel_enabled"))
     else:
-        console.print(get_text('messages.parallel_disabled'))
+        console.print(get_text("messages.parallel_disabled"))
 
     if project_types:
-        console.print(get_text('messages.project_types', types=', '.join(project_types)))
+        console.print(
+            get_text("messages.project_types", types=", ".join(project_types))
+        )
 
     scanner = ProjectScanner()
 
@@ -190,7 +205,9 @@ def scan(path: Path, depth: int, project_types: tuple, parallel: bool):
 
 @cli.command()
 @click.argument("path", type=click.Path(exists=True, path_type=Path), default=".")
-@click.option("--depth", "-d", default=5, help="Maximum directory depth to scan (default: 5)")
+@click.option(
+    "--depth", "-d", default=5, help="Maximum directory depth to scan (default: 5)"
+)
 @click.option(
     "--sort-by",
     "-s",
@@ -222,9 +239,13 @@ def analyze(path: Path, depth: int, sort_by: str, limit: int):
             return
 
         # Analyze dependencies
-        analyze_task = progress.add_task(get_text("status.analyzing_dependencies"), total=None)
+        analyze_task = progress.add_task(
+            get_text("status.analyzing_dependencies"), total=None
+        )
         report = analyzer.analyze_projects(projects)
-        progress.update(analyze_task, description=get_text("success.analysis_completed"))
+        progress.update(
+            analyze_task, description=get_text("success.analysis_completed")
+        )
 
     # Display analysis report
     _display_analysis_report(report, sort_by, limit)
@@ -323,7 +344,9 @@ def _display_projects_table(projects):
     table.add_column(get_text("tables.projects.name"), style="cyan", no_wrap=True)
     table.add_column(get_text("tables.projects.type"), style="magenta")
     table.add_column(get_text("tables.projects.path"), style="blue")
-    table.add_column(get_text("tables.projects.dependencies"), justify="right", style="green")
+    table.add_column(
+        get_text("tables.projects.dependencies"), justify="right", style="green"
+    )
     table.add_column(get_text("tables.projects.size"), justify="right", style="yellow")
 
     for project in projects:
@@ -759,9 +782,14 @@ def config(create: bool, config_path: Optional[Path], show: bool, lang_info: boo
         console.print(sys_table)
 
         # Terminal locale information
-        if "terminal_locale" in detection_info and detection_info["terminal_locale"] != "检测失败":
+        if (
+            "terminal_locale" in detection_info
+            and detection_info["terminal_locale"] != "检测失败"
+        ):
             console.print(f"\n📟 [bold green]Terminal Locale Information:[/bold green]")
-            console.print(Panel(detection_info["terminal_locale"], border_style="green"))
+            console.print(
+                Panel(detection_info["terminal_locale"], border_style="green")
+            )
 
         # Usage tips
         console.print(f"\n💡 [bold yellow]Usage Tips:[/bold yellow]")
@@ -770,7 +798,7 @@ def config(create: bool, config_path: Optional[Path], show: bool, lang_info: boo
             "• Use 'depx --lang en' to force English interface",
             "• Set 'export DEPX_LANG=zh' for default Chinese",
             "• Set 'export DEPX_LANG=en' for default English",
-            "• Language is auto-detected from system locale if not specified"
+            "• Language is auto-detected from system locale if not specified",
         ]
         for tip in tips:
             console.print(tip)

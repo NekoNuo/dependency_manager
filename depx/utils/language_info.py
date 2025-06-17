@@ -13,7 +13,7 @@ from ..parsers.base import ProjectType
 @dataclass
 class LanguageInfo:
     """编程语言信息"""
-    
+
     name: str  # 语言名称
     project_type: ProjectType  # 项目类型
     config_files: List[str]  # 配置文件
@@ -28,33 +28,46 @@ SUPPORTED_LANGUAGES: Dict[ProjectType, LanguageInfo] = {
     ProjectType.NODEJS: LanguageInfo(
         name="Node.js",
         project_type=ProjectType.NODEJS,
-        config_files=["package.json", "package-lock.json", "yarn.lock", "pnpm-lock.yaml"],
+        config_files=[
+            "package.json",
+            "package-lock.json",
+            "yarn.lock",
+            "pnpm-lock.yaml",
+        ],
         package_managers=["npm", "yarn", "pnpm"],
         dependency_dirs=["node_modules"],
         description="JavaScript/TypeScript runtime environment",
-        status="stable"
+        status="stable",
     ),
-    
     ProjectType.PYTHON: LanguageInfo(
         name="Python",
         project_type=ProjectType.PYTHON,
-        config_files=["requirements.txt", "setup.py", "pyproject.toml", "Pipfile", "Pipfile.lock"],
+        config_files=[
+            "requirements.txt",
+            "setup.py",
+            "pyproject.toml",
+            "Pipfile",
+            "Pipfile.lock",
+        ],
         package_managers=["pip", "pipenv", "poetry", "conda"],
         dependency_dirs=["venv", ".venv", "env", "__pycache__"],
         description="High-level programming language",
-        status="stable"
+        status="stable",
     ),
-    
     ProjectType.JAVA: LanguageInfo(
         name="Java",
         project_type=ProjectType.JAVA,
-        config_files=["pom.xml", "build.gradle", "build.gradle.kts", "gradle.properties"],
+        config_files=[
+            "pom.xml",
+            "build.gradle",
+            "build.gradle.kts",
+            "gradle.properties",
+        ],
         package_managers=["Maven", "Gradle"],
         dependency_dirs=["target", "build", ".gradle"],
         description="Object-oriented programming language",
-        status="stable"
+        status="stable",
     ),
-    
     ProjectType.GO: LanguageInfo(
         name="Go",
         project_type=ProjectType.GO,
@@ -62,9 +75,8 @@ SUPPORTED_LANGUAGES: Dict[ProjectType, LanguageInfo] = {
         package_managers=["go modules", "dep"],
         dependency_dirs=["vendor"],
         description="Statically typed compiled language",
-        status="stable"
+        status="stable",
     ),
-    
     ProjectType.RUST: LanguageInfo(
         name="Rust",
         project_type=ProjectType.RUST,
@@ -72,9 +84,8 @@ SUPPORTED_LANGUAGES: Dict[ProjectType, LanguageInfo] = {
         package_managers=["Cargo"],
         dependency_dirs=["target"],
         description="Systems programming language",
-        status="stable"
+        status="stable",
     ),
-    
     ProjectType.PHP: LanguageInfo(
         name="PHP",
         project_type=ProjectType.PHP,
@@ -82,17 +93,21 @@ SUPPORTED_LANGUAGES: Dict[ProjectType, LanguageInfo] = {
         package_managers=["Composer"],
         dependency_dirs=["vendor"],
         description="Server-side scripting language",
-        status="stable"
+        status="stable",
     ),
-    
     ProjectType.CSHARP: LanguageInfo(
         name="C#",
         project_type=ProjectType.CSHARP,
-        config_files=[".csproj", "packages.config", "project.json", "Directory.Build.props"],
+        config_files=[
+            ".csproj",
+            "packages.config",
+            "project.json",
+            "Directory.Build.props",
+        ],
         package_managers=["NuGet", "dotnet"],
         dependency_dirs=["packages", "bin", "obj"],
         description="Object-oriented programming language",
-        status="stable"
+        status="stable",
     ),
 }
 
@@ -106,9 +121,8 @@ PLANNED_LANGUAGES = [
         package_managers=["Bundler", "gem"],
         dependency_dirs=["vendor/bundle"],
         description="Dynamic programming language",
-        status="planned"
+        status="planned",
     ),
-    
     LanguageInfo(
         name="Swift",
         project_type=ProjectType.UNKNOWN,
@@ -116,9 +130,8 @@ PLANNED_LANGUAGES = [
         package_managers=["Swift Package Manager"],
         dependency_dirs=[".build"],
         description="Apple's programming language",
-        status="planned"
+        status="planned",
     ),
-    
     LanguageInfo(
         name="Dart",
         project_type=ProjectType.UNKNOWN,
@@ -126,9 +139,8 @@ PLANNED_LANGUAGES = [
         package_managers=["pub"],
         dependency_dirs=[".dart_tool", "build"],
         description="Client-optimized language",
-        status="planned"
+        status="planned",
     ),
-    
     LanguageInfo(
         name="Scala",
         project_type=ProjectType.UNKNOWN,
@@ -136,7 +148,7 @@ PLANNED_LANGUAGES = [
         package_managers=["sbt"],
         dependency_dirs=["target", "project/target"],
         description="Functional and object-oriented language",
-        status="planned"
+        status="planned",
     ),
 ]
 
@@ -170,10 +182,10 @@ def get_all_package_managers() -> List[str]:
 def format_language_support_info(language: str = "en") -> str:
     """
     格式化语言支持信息
-    
+
     Args:
         language: 显示语言 (en, zh)
-        
+
     Returns:
         格式化的语言支持信息
     """
@@ -183,25 +195,25 @@ def format_language_support_info(language: str = "en") -> str:
     else:
         header = "🎯 SUPPORTED LANGUAGES:"
         planned_header = "\n🚧 PLANNED LANGUAGES:"
-    
+
     lines = [header]
-    
+
     # 当前支持的语言
     for lang_info in SUPPORTED_LANGUAGES.values():
         config_str = ", ".join(lang_info.config_files[:2])  # 只显示前两个
         if len(lang_info.config_files) > 2:
             config_str += ", ..."
-        
+
         managers_str = ", ".join(lang_info.package_managers)
         lines.append(f"• {lang_info.name:<10} - {config_str} ({managers_str})")
-    
+
     # 计划支持的语言
     lines.append(planned_header)
     for lang_info in PLANNED_LANGUAGES:
         config_str = ", ".join(lang_info.config_files)
         managers_str = ", ".join(lang_info.package_managers)
         lines.append(f"• {lang_info.name:<10} - {config_str} ({managers_str})")
-    
+
     return "\n".join(lines)
 
 

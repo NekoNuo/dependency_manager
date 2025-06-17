@@ -27,7 +27,7 @@ class I18nManager:
     def _load_translations(self):
         """加载所有语言文件"""
         i18n_dir = Path(__file__).parent
-        
+
         # 加载支持的语言文件
         for lang_file in i18n_dir.glob("*.yaml"):
             if lang_file.stem in ["en", "zh"]:
@@ -41,10 +41,10 @@ class I18nManager:
     def set_language(self, language: str) -> bool:
         """
         设置当前语言
-        
+
         Args:
             language: 语言代码 (en, zh)
-            
+
         Returns:
             是否设置成功
         """
@@ -63,26 +63,30 @@ class I18nManager:
     def get_text(self, key: str, **kwargs) -> str:
         """
         获取翻译文本
-        
+
         Args:
             key: 文本键，支持点号分隔的嵌套键 (如 "cli.scan.help")
             **kwargs: 格式化参数
-            
+
         Returns:
             翻译后的文本
         """
         # 尝试从当前语言获取
-        text = self._get_nested_value(self._translations.get(self._current_language, {}), key)
-        
+        text = self._get_nested_value(
+            self._translations.get(self._current_language, {}), key
+        )
+
         # 如果没找到，尝试从备用语言获取
         if text is None:
-            text = self._get_nested_value(self._translations.get(self._fallback_language, {}), key)
-        
+            text = self._get_nested_value(
+                self._translations.get(self._fallback_language, {}), key
+            )
+
         # 如果还是没找到，返回键本身
         if text is None:
             logger.warning(f"未找到翻译文本: {key}")
             return key
-        
+
         # 格式化文本
         try:
             return text.format(**kwargs) if kwargs else text
@@ -94,13 +98,13 @@ class I18nManager:
         """获取嵌套字典中的值"""
         keys = key.split(".")
         current = data
-        
+
         for k in keys:
             if isinstance(current, dict) and k in current:
                 current = current[k]
             else:
                 return None
-        
+
         return current
 
     def auto_detect_language(self) -> str:
@@ -130,7 +134,9 @@ class I18nManager:
             try:
                 detected_lang = method()
                 if detected_lang and detected_lang in self._translations:
-                    logger.debug(f"语言检测成功: {detected_lang} (方法: {method.__name__})")
+                    logger.debug(
+                        f"语言检测成功: {detected_lang} (方法: {method.__name__})"
+                    )
                     return detected_lang
             except Exception as e:
                 logger.debug(f"语言检测方法 {method.__name__} 失败: {e}")
@@ -165,16 +171,14 @@ class I18nManager:
         try:
             # 尝试检测终端的语言设置
             import subprocess
+
             result = subprocess.run(
-                ["locale"],
-                capture_output=True,
-                text=True,
-                timeout=2
+                ["locale"], capture_output=True, text=True, timeout=2
             )
             if result.returncode == 0:
-                for line in result.stdout.split('\n'):
-                    if line.startswith('LANG='):
-                        lang_value = line.split('=', 1)[1].strip('"')
+                for line in result.stdout.split("\n"):
+                    if line.startswith("LANG="):
+                        lang_value = line.split("=", 1)[1].strip('"')
                         return self._parse_locale_string(lang_value)
         except Exception:
             pass
@@ -200,9 +204,19 @@ class I18nManager:
 
         # 中文检测 (支持各种中文变体)
         chinese_indicators = [
-            'zh', 'zh_cn', 'zh_tw', 'zh_hk', 'zh_sg',
-            'zh-cn', 'zh-tw', 'zh-hk', 'zh-sg',
-            'chinese', 'china', 'taiwan', 'hongkong'
+            "zh",
+            "zh_cn",
+            "zh_tw",
+            "zh_hk",
+            "zh_sg",
+            "zh-cn",
+            "zh-tw",
+            "zh-hk",
+            "zh-sg",
+            "chinese",
+            "china",
+            "taiwan",
+            "hongkong",
         ]
 
         for indicator in chinese_indicators:
@@ -211,9 +225,18 @@ class I18nManager:
 
         # 英文检测
         english_indicators = [
-            'en', 'en_us', 'en_gb', 'en_ca', 'en_au',
-            'en-us', 'en-gb', 'en-ca', 'en-au',
-            'english', 'american', 'british'
+            "en",
+            "en_us",
+            "en_gb",
+            "en_ca",
+            "en_au",
+            "en-us",
+            "en-gb",
+            "en-ca",
+            "en-au",
+            "english",
+            "american",
+            "british",
         ]
 
         for indicator in english_indicators:
@@ -273,12 +296,8 @@ def get_language_detection_info() -> Dict[str, str]:
     # 终端 locale
     try:
         import subprocess
-        result = subprocess.run(
-            ["locale"],
-            capture_output=True,
-            text=True,
-            timeout=2
-        )
+
+        result = subprocess.run(["locale"], capture_output=True, text=True, timeout=2)
         if result.returncode == 0:
             info["terminal_locale"] = result.stdout.strip()
         else:
