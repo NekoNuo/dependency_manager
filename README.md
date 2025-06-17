@@ -1,109 +1,197 @@
-# Dependency Manager (DepMan)
+# Depx - 本地多语言依赖统一管理器
 
-A universal dependency manager for various package managers and programming languages.
+🚀 **统一发现 • 信息透明 • 空间优化 • 跨平台支持**
 
-## Features
+Depx 是一个强大的本地依赖管理工具，能够自动识别和分析本地文件系统中各种编程语言项目的依赖关系，帮助开发者更好地管理和优化项目依赖。
 
-- **Cross-Platform**: Works on Linux, macOS, and Windows
-- **Multi-Language Support**: Manages dependencies for various programming languages (Python, JavaScript, Java, Ruby, Go, Rust, etc.)
-- **Unified Interface**: Common commands for all package managers
-- **Project & Global Management**: Handle both project-specific and global dependencies
+## ✨ 核心特性
 
-## Usage
+### 🔍 统一发现
+- 自动识别本地文件系统中的各类编程语言项目
+- 支持 Node.js、Python、Java、Go、Rust 等多种语言（逐步支持）
+- 智能扫描项目配置文件和依赖目录
 
-```bash
-# Install a package globally
-depman install <package_name>
+### 📊 信息透明
+- 提供依赖的详细信息：名称、版本、大小、位置
+- 清晰展示项目依赖关系和层级结构
+- 支持多种排序和筛选方式
 
-# Install a package for the current project
-depman install <package_name> --project
+### 💾 空间优化
+- 识别重复和冗余的依赖
+- 计算精确的磁盘占用空间
+- 提供智能清理建议
 
-# Install all dependencies for the current project
-depman install --project
+### 🌐 跨平台支持
+- 在 Windows、macOS 和 Linux 上稳定运行
+- 统一的命令行界面
+- 美观的输出格式
 
-# Uninstall a package
-depman uninstall <package_name>
+## 🚀 快速开始
 
-# Upgrade a package
-depman upgrade <package_name>
-
-# Upgrade all packages
-depman upgrade --all
-
-# Scan project for dependencies
-depman scan
-
-# List all installed dependencies
-depman list
-
-# Show dependency tree
-depman tree
-
-# Find a package's installation path
-depman path <package_name>
-
-# Search for packages
-depman search <keyword>
-```
-
-## Installation
+### 安装
 
 ```bash
-# Install from PyPI
-pip install depman
-```
+# 克隆项目
+git clone <repository-url>
+cd depx
 
-### Development Installation
+# 安装依赖
+pip install -r requirements.txt
 
-```bash
-# Clone the repository
-git clone https://github.com/username/dependency_manager.git
-cd dependency_manager
-
-# Install the package
+# 安装 Depx
 pip install -e .
-
-# Install development dependencies
-pip install -e ".[dev]"
-
-# Run tests
-pytest
 ```
 
-## Supported Package Managers
+### 基本使用
 
-### Currently Implemented
+```bash
+# 扫描当前目录
+depx scan
 
-#### Operating System Package Managers
-- ✅ Homebrew (macOS)
+# 扫描指定目录
+depx scan /path/to/projects
 
-#### Language Package Managers
-- ✅ pip (Python)
-- ✅ npm (JavaScript/Node.js)
+# 分析依赖并生成报告
+depx analyze
 
-### Coming Soon
+# 查看单个项目信息
+depx info /path/to/project
 
-#### Operating System Package Managers
-- APT (Debian/Ubuntu)
-- Chocolatey (Windows)
+# 查看帮助
+depx --help
+```
 
-#### Language Package Managers
-- yarn, pnpm (JavaScript/Node.js)
-- Poetry, pipenv (Python)
-- Maven, Gradle (Java)
-- Bundler, RubyGems (Ruby)
-- Go Modules (Go)
-- Cargo (Rust)
-- Composer (PHP)
-- NuGet (.NET)
+## 📋 命令详解
 
-## Examples
+### `depx scan` - 项目扫描
 
-Example projects for different package managers can be found in the `examples` directory:
+扫描指定目录，发现所有支持的项目类型。
 
-- `examples/python_project`: A simple Python project with pip dependencies
-- `examples/node_project`: A simple Node.js project with npm dependencies
+```bash
+# 基本扫描
+depx scan
 
-## License
+# 指定扫描深度
+depx scan --depth 3
 
-MIT 
+# 只扫描特定类型的项目
+depx scan --type nodejs --type python
+
+# 禁用并行处理
+depx scan --no-parallel
+```
+
+### `depx analyze` - 依赖分析
+
+深度分析项目依赖，生成详细报告。
+
+```bash
+# 基本分析
+depx analyze
+
+# 按大小排序
+depx analyze --sort-by size
+
+# 限制显示数量
+depx analyze --limit 10
+```
+
+### `depx info` - 项目信息
+
+显示单个项目的详细信息。
+
+```bash
+depx info /path/to/project
+```
+
+## 🏗️ 项目结构
+
+```
+depx/
+├── depx/
+│   ├── __init__.py
+│   ├── cli.py              # 命令行入口
+│   ├── core/
+│   │   ├── scanner.py      # 项目扫描器
+│   │   └── analyzer.py     # 依赖分析器
+│   ├── parsers/
+│   │   ├── base.py         # 基础解析器
+│   │   └── nodejs.py       # Node.js 解析器
+│   └── utils/
+│       └── file_utils.py   # 文件工具
+├── tests/                  # 测试文件
+├── requirements.txt        # Python 依赖
+└── setup.py               # 安装配置
+```
+
+## 🎯 当前支持
+
+### ✅ 已支持
+- **Node.js**: package.json, node_modules, npm/yarn/pnpm
+
+### 🚧 计划支持
+- **Python**: requirements.txt, setup.py, pyproject.toml, venv
+- **Java**: pom.xml, build.gradle, Maven/Gradle 缓存
+- **Go**: go.mod, go.sum, GOPATH/GOMODCACHE
+- **Rust**: Cargo.toml, Cargo.lock, ~/.cargo
+- **PHP**: composer.json, vendor/
+- **C#**: *.csproj, packages.config, NuGet 缓存
+
+## 🧪 运行测试
+
+```bash
+# 运行所有测试
+pytest
+
+# 运行特定测试
+pytest tests/test_scanner.py
+
+# 运行测试并显示覆盖率
+pytest --cov=depx
+```
+
+## 🤝 贡献指南
+
+我们欢迎各种形式的贡献！
+
+1. Fork 项目
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 🗺️ 开发路线图
+
+### v0.1.0 (当前)
+- ✅ 基础架构搭建
+- ✅ Node.js 项目支持
+- ✅ 命令行界面
+- ✅ 基础测试
+
+### v0.2.0 (计划中)
+- 🚧 Python 项目支持
+- 🚧 依赖清理功能
+- 🚧 配置文件支持
+- 🚧 性能优化
+
+### v0.3.0 (未来)
+- 🔮 Java/Maven/Gradle 支持
+- 🔮 Go 项目支持
+- 🔮 Web 界面 (可选)
+- 🔮 依赖安全扫描
+
+## 📞 联系我们
+
+如果您有任何问题或建议，请通过以下方式联系我们：
+
+- 提交 Issue
+- 发起 Discussion
+- 发送邮件
+
+---
+
+**Depx** - 让依赖管理变得简单高效！ 🎉
