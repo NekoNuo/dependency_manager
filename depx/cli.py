@@ -1,10 +1,11 @@
 """
-Depx 命令行界面
+Depx Command Line Interface
 
-提供用户友好的命令行接口
+Provides user-friendly command line interface
 """
 
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Optional
@@ -22,25 +23,33 @@ from .core.global_scanner import GlobalScanner
 from .parsers.base import ProjectType, DependencyType, PackageManagerType
 from .utils.file_utils import format_size
 
-# 配置日志
+# Set UTF-8 encoding for Windows compatibility
+if sys.platform.startswith('win'):
+    os.environ['PYTHONIOENCODING'] = 'utf-8'
+
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-# Rich 控制台
-console = Console()
+# Rich console with Windows compatibility
+console = Console(
+    force_terminal=True,
+    legacy_windows=False,
+    width=120,
+)
 
 
 @click.group()
 @click.version_option(version="0.4.0")
-@click.option('--verbose', '-v', is_flag=True, help='启用详细输出')
+@click.option('--verbose', '-v', is_flag=True, help='Enable verbose output')
 def cli(verbose: bool):
     """
-    Depx - 本地多语言依赖统一管理器
+    Depx - Local Multi-language Dependency Manager
     
-    统一发现、信息透明、空间优化、跨平台支持
+    Unified discovery, transparent information, space optimization, cross-platform support
     """
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -48,20 +57,20 @@ def cli(verbose: bool):
 
 @cli.command()
 @click.argument('path', type=click.Path(exists=True, path_type=Path), default='.')
-@click.option('--depth', '-d', default=5, help='扫描深度 (默认: 5)')
+@click.option('--depth', '-d', default=5, help='Scan depth (default: 5)')
 @click.option('--type', '-t', 'project_types', multiple=True, 
               type=click.Choice([pt.value for pt in ProjectType if pt != ProjectType.UNKNOWN]),
-              help='指定项目类型')
-@click.option('--parallel/--no-parallel', default=True, help='是否使用并行处理')
+              help='Specify project types')
+@click.option('--parallel/--no-parallel', default=True, help='Enable/disable parallel processing')
 def scan(path: Path, depth: int, project_types: tuple, parallel: bool):
-    """扫描指定目录，发现项目和依赖"""
+    """Scan specified directory to discover projects and dependencies"""
     
-    console.print(f"\n🔍 扫描目录: [bold blue]{path.absolute()}[/bold blue]")
-    console.print(f"📏 扫描深度: {depth}")
-    console.print(f"⚡ 并行处理: {'启用' if parallel else '禁用'}")
+    console.print(f"\n🔍 Scanning directory: [bold blue]{path.absolute()}[/bold blue]")
+    console.print(f"📏 Scan depth: {depth}")
+    console.print(f"⚡ Parallel processing: {'Enabled' if parallel else 'Disabled'}")
     
     if project_types:
-        console.print(f"🎯 项目类型: {', '.join(project_types)}")
+        console.print(f"🎯 Project types: {', '.join(project_types)}")
     
     scanner = ProjectScanner()
     
@@ -70,42 +79,42 @@ def scan(path: Path, depth: int, project_types: tuple, parallel: bool):
         TextColumn("[progress.description]{task.description}"),
         console=console
     ) as progress:
-        task = progress.add_task("正在扫描项目...", total=None)
+        task = progress.add_task("Scanning projects...", total=None)
         
         try:
             projects = scanner.scan_directory(path, depth, parallel)
         except Exception as e:
-            console.print(f"[red]扫描失败: {e}[/red]")
+            console.print(f"[red]Scan failed: {e}[/red]")
             sys.exit(1)
         
-        progress.update(task, description="扫描完成")
+        progress.update(task, description="Scan completed")
     
     if not projects:
-        console.print("\n[yellow]未发现任何项目[/yellow]")
+        console.print("\n[yellow]No projects found[/yellow]")
         return
     
-    # 过滤项目类型
+    # Filter project types
     if project_types:
         filtered_types = [ProjectType(pt) for pt in project_types]
         projects = [p for p in projects if p.project_type in filtered_types]
     
-    console.print(f"\n✅ 发现 [bold green]{len(projects)}[/bold green] 个项目")
+    console.print(f"\n✅ Found [bold green]{len(projects)}[/bold green] projects")
     
-    # 显示项目列表
+    # Display project list
     _display_projects_table(projects)
 
 
 @cli.command()
 @click.argument('path', type=click.Path(exists=True, path_type=Path), default='.')
-@click.option('--depth', '-d', default=5, help='扫描深度 (默认: 5)')
+@click.option('--depth', '-d', default=5, help='Scan depth (default: 5)')
 @click.option('--sort-by', '-s', default='size', 
               type=click.Choice(['name', 'size', 'type']),
-              help='排序方式')
-@click.option('--limit', '-l', default=20, help='显示数量限制')
+              help='Sort method')
+@click.option('--limit', '-l', default=20, help='Display limit')
 def analyze(path: Path, depth: int, sort_by: str, limit: int):
-    """分析项目依赖，生成详细报告"""
+    """Analyze project dependencies and generate detailed report"""
     
-    console.print(f"\n📊 分析目录: [bold blue]{path.absolute()}[/bold blue]")
+    console.print(f"\n📊 Analyzing directory: [bold blue]{path.absolute()}[/bold blue]")
     
     scanner = ProjectScanner()
     analyzer = DependencyAnalyzer()
@@ -115,105 +124,105 @@ def analyze(path: Path, depth: int, sort_by: str, limit: int):
         TextColumn("[progress.description]{task.description}"),
         console=console
     ) as progress:
-        # 扫描项目
-        scan_task = progress.add_task("正在扫描项目...", total=None)
+        # Scan projects
+        scan_task = progress.add_task("Scanning projects...", total=None)
         projects = scanner.scan_directory(path, depth)
-        progress.update(scan_task, description="扫描完成")
+        progress.update(scan_task, description="Scan completed")
         
         if not projects:
-            console.print("\n[yellow]未发现任何项目[/yellow]")
+            console.print("\n[yellow]No projects found[/yellow]")
             return
         
-        # 分析依赖
-        analyze_task = progress.add_task("正在分析依赖...", total=None)
+        # Analyze dependencies
+        analyze_task = progress.add_task("Analyzing dependencies...", total=None)
         report = analyzer.analyze_projects(projects)
-        progress.update(analyze_task, description="分析完成")
+        progress.update(analyze_task, description="Analysis completed")
     
-    # 显示分析报告
+    # Display analysis report
     _display_analysis_report(report, sort_by, limit)
 
 
 @cli.command()
 @click.argument('project_path', type=click.Path(exists=True, path_type=Path))
 def info(project_path: Path):
-    """显示单个项目的详细信息"""
-
+    """Display detailed information for a single project"""
+    
     scanner = ProjectScanner()
-
-    console.print(f"\n📋 项目信息: [bold blue]{project_path.absolute()}[/bold blue]")
-
+    
+    console.print(f"\n📋 Project info: [bold blue]{project_path.absolute()}[/bold blue]")
+    
     project = scanner.scan_single_project(project_path)
-
+    
     if not project:
-        console.print("[red]无法识别项目类型或解析失败[/red]")
+        console.print("[red]Unable to recognize project type or parsing failed[/red]")
         return
-
+    
     _display_project_info(project)
 
 
 @cli.command()
 @click.option('--type', '-t', 'manager_type',
               type=click.Choice([pm.value for pm in PackageManagerType if pm != PackageManagerType.UNKNOWN]),
-              help='指定包管理器类型')
+              help='Specify package manager type')
 @click.option('--sort-by', '-s', default='size',
               type=click.Choice(['name', 'size', 'manager']),
-              help='排序方式')
-@click.option('--limit', '-l', default=50, help='显示数量限制')
+              help='Sort method')
+@click.option('--limit', '-l', default=50, help='Display limit')
 def global_deps(manager_type: Optional[str], sort_by: str, limit: int):
-    """扫描和显示全局安装的依赖"""
-
-    console.print("\n🌍 扫描全局依赖...")
-
+    """Scan and display globally installed dependencies"""
+    
+    console.print("\n🌍 Scanning global dependencies...")
+    
     scanner = GlobalScanner()
-
+    
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
         console=console
     ) as progress:
-        task = progress.add_task("正在扫描全局依赖...", total=None)
-
+        task = progress.add_task("Scanning global dependencies...", total=None)
+        
         if manager_type:
             pm_type = PackageManagerType(manager_type)
             dependencies = scanner.scan_by_package_manager(pm_type)
         else:
             dependencies = scanner.scan_all_global_dependencies()
-
-        progress.update(task, description="扫描完成")
-
+        
+        progress.update(task, description="Scan completed")
+    
     if not dependencies:
-        console.print("\n[yellow]未发现任何全局依赖[/yellow]")
+        console.print("\n[yellow]No global dependencies found[/yellow]")
         return
-
-    # 排序
+    
+    # Sort
     if sort_by == 'name':
         dependencies.sort(key=lambda x: x.name.lower())
     elif sort_by == 'size':
         dependencies.sort(key=lambda x: x.size_bytes, reverse=True)
     elif sort_by == 'manager':
         dependencies.sort(key=lambda x: x.package_manager.value)
-
-    console.print(f"\n✅ 发现 [bold green]{len(dependencies)}[/bold green] 个全局依赖")
-
-    # 显示检测到的包管理器
+    
+    console.print(f"\n✅ Found [bold green]{len(dependencies)}[/bold green] global dependencies")
+    
+    # Display detected package managers
     detected_managers = scanner.get_detected_package_managers()
     if detected_managers:
         manager_names = [pm.value for pm in detected_managers]
-        console.print(f"📦 检测到的包管理器: {', '.join(manager_names)}")
-
-    # 显示全局依赖表格
+        console.print(f"📦 Detected package managers: {', '.join(manager_names)}")
+    
+    # Display global dependencies table
     _display_global_dependencies_table(dependencies[:limit])
 
 
 def _display_projects_table(projects):
-    """显示项目列表表格"""
-    table = Table(title="发现的项目")
+    """Display projects table"""
+    table = Table(title="Discovered Projects")
     
-    table.add_column("项目名称", style="cyan", no_wrap=True)
-    table.add_column("类型", style="magenta")
-    table.add_column("路径", style="blue")
-    table.add_column("依赖数量", justify="right", style="green")
-    table.add_column("总大小", justify="right", style="yellow")
+    table.add_column("Project Name", style="cyan", no_wrap=True)
+    table.add_column("Type", style="magenta")
+    table.add_column("Path", style="blue")
+    table.add_column("Dependencies", justify="right", style="green")
+    table.add_column("Total Size", justify="right", style="yellow")
     
     for project in projects:
         table.add_row(
@@ -228,39 +237,39 @@ def _display_projects_table(projects):
 
 
 def _display_analysis_report(report, sort_by: str, limit: int):
-    """显示分析报告"""
+    """Display analysis report"""
     summary = report["summary"]
     
-    # 总览面板
+    # Summary panel
     summary_text = f"""
-📊 总项目数: {summary['total_projects']}
-📦 总依赖数: {summary['total_dependencies']}
-💾 总占用空间: {summary['total_size_formatted']}
+📊 Total projects: {summary['total_projects']}
+📦 Total dependencies: {summary['total_dependencies']}
+💾 Total space used: {summary['total_size_formatted']}
     """
     
-    console.print(Panel(summary_text.strip(), title="📈 总览", border_style="green"))
+    console.print(Panel(summary_text.strip(), title="📈 Summary", border_style="green"))
     
-    # 最大依赖表格
+    # Largest dependencies table
     dep_stats = report["dependency_stats"]
     if dep_stats.largest_dependencies:
-        dep_table = Table(title="🔥 占用空间最大的依赖")
-        dep_table.add_column("依赖名称", style="cyan")
-        dep_table.add_column("大小", justify="right", style="yellow")
+        dep_table = Table(title="🔥 Largest Dependencies by Size")
+        dep_table.add_column("Dependency Name", style="cyan")
+        dep_table.add_column("Size", justify="right", style="yellow")
         
         for name, size in dep_stats.largest_dependencies[:limit]:
             dep_table.add_row(name, format_size(size))
         
         console.print(dep_table)
     
-    # 重复依赖
+    # Duplicate dependencies
     duplicates = report["duplicate_dependencies"]
     if duplicates["count"] > 0:
-        dup_table = Table(title="🔄 重复依赖")
-        dup_table.add_column("依赖名称", style="cyan")
-        dup_table.add_column("项目数", justify="right", style="magenta")
-        dup_table.add_column("版本数", justify="right", style="blue")
-        dup_table.add_column("总大小", justify="right", style="yellow")
-        dup_table.add_column("可节省", justify="right", style="green")
+        dup_table = Table(title="🔄 Duplicate Dependencies")
+        dup_table.add_column("Dependency Name", style="cyan")
+        dup_table.add_column("Projects", justify="right", style="magenta")
+        dup_table.add_column("Versions", justify="right", style="blue")
+        dup_table.add_column("Total Size", justify="right", style="yellow")
+        dup_table.add_column("Potential Savings", justify="right", style="green")
         
         for dup in duplicates["dependencies"][:limit]:
             dup_table.add_row(
@@ -273,59 +282,59 @@ def _display_analysis_report(report, sort_by: str, limit: int):
         
         console.print(dup_table)
     
-    # 清理建议
+    # Cleanup suggestions
     suggestions = report["cleanup_suggestions"]
     if suggestions:
-        console.print("\n💡 [bold yellow]清理建议[/bold yellow]")
+        console.print("\n💡 [bold yellow]Cleanup Suggestions[/bold yellow]")
         for suggestion in suggestions:
             console.print(f"• {suggestion['title']}: {suggestion['description']}")
-            console.print(f"  潜在节省: {format_size(suggestion['potential_savings'])}")
+            console.print(f"  Potential savings: {format_size(suggestion['potential_savings'])}")
 
 
 def _display_global_dependencies_table(dependencies):
-    """显示全局依赖表格"""
-    table = Table(title="🌍 全局依赖")
-
-    table.add_column("依赖名称", style="cyan", no_wrap=True)
-    table.add_column("版本", style="magenta")
-    table.add_column("包管理器", style="blue")
-    table.add_column("大小", justify="right", style="yellow")
-    table.add_column("安装路径", style="dim", max_width=50)
-
+    """Display global dependencies table"""
+    table = Table(title="🌍 Global Dependencies")
+    
+    table.add_column("Dependency Name", style="cyan", no_wrap=True)
+    table.add_column("Version", style="magenta")
+    table.add_column("Package Manager", style="blue")
+    table.add_column("Size", justify="right", style="yellow")
+    table.add_column("Install Path", style="dim", max_width=50)
+    
     for dep in dependencies:
         table.add_row(
             dep.name,
             dep.version,
             dep.package_manager.value,
             format_size(dep.size_bytes),
-            str(dep.install_path) if dep.install_path != Path("unknown") else "未知"
+            str(dep.install_path) if dep.install_path != Path("unknown") else "Unknown"
         )
-
+    
     console.print(table)
 
 
 def _display_project_info(project):
-    """显示单个项目的详细信息"""
-    # 项目基本信息
+    """Display detailed project information"""
+    # Project basic info
     info_text = f"""
-📁 项目名称: {project.name}
-🏷️  项目类型: {project.project_type.value}
-📍 项目路径: {project.path}
-⚙️  配置文件: {project.config_file}
-📦 依赖数量: {len(project.dependencies)}
-💾 总大小: {format_size(project.total_size_bytes)}
+📁 Project name: {project.name}
+🏷️  Project type: {project.project_type.value}
+📍 Project path: {project.path}
+⚙️  Config file: {project.config_file}
+📦 Dependencies count: {len(project.dependencies)}
+💾 Total size: {format_size(project.total_size_bytes)}
     """
-
-    console.print(Panel(info_text.strip(), title="📋 项目信息", border_style="blue"))
-
-    # 依赖列表
+    
+    console.print(Panel(info_text.strip(), title="📋 Project Information", border_style="blue"))
+    
+    # Dependencies list
     if project.dependencies:
-        dep_table = Table(title="📦 依赖列表")
-        dep_table.add_column("名称", style="cyan")
-        dep_table.add_column("版本", style="magenta")
-        dep_table.add_column("类型", style="blue")
-        dep_table.add_column("大小", justify="right", style="yellow")
-
+        dep_table = Table(title="📦 Dependencies List")
+        dep_table.add_column("Name", style="cyan")
+        dep_table.add_column("Version", style="magenta")
+        dep_table.add_column("Type", style="blue")
+        dep_table.add_column("Size", justify="right", style="yellow")
+        
         for dep in project.dependencies:
             dep_table.add_row(
                 dep.name,
@@ -333,19 +342,19 @@ def _display_project_info(project):
                 dep.dependency_type.value,
                 format_size(dep.size_bytes)
             )
-
+        
         console.print(dep_table)
 
 
 def main():
-    """主入口函数"""
+    """Main entry function"""
     try:
         cli()
     except KeyboardInterrupt:
-        console.print("\n[yellow]操作已取消[/yellow]")
+        console.print("\n[yellow]Operation cancelled[/yellow]")
         sys.exit(1)
     except Exception as e:
-        console.print(f"\n[red]发生错误: {e}[/red]")
+        console.print(f"\n[red]Error occurred: {e}[/red]")
         if logger.isEnabledFor(logging.DEBUG):
             import traceback
             console.print(traceback.format_exc())

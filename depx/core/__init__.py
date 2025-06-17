@@ -8,8 +8,4 @@ from .scanner import ProjectScanner
 from .analyzer import DependencyAnalyzer
 from .global_scanner import GlobalScanner
 
-__all__ = [
-    "ProjectScanner",
-    "DependencyAnalyzer",
-    "GlobalScanner"
-]
+__all__ = ["ProjectScanner", "DependencyAnalyzer", "GlobalScanner"]

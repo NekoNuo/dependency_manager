@@ -13,7 +13,7 @@ from .file_utils import (
 
 __all__ = [
     "get_directory_size",
-    "find_files_by_pattern", 
+    "find_files_by_pattern",
     "is_hidden_directory",
     "safe_read_json",
 ]
