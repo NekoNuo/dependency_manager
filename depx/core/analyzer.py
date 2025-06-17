@@ -5,12 +5,12 @@
 """
 
 import logging
-from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-from ..parsers.base import ProjectInfo, DependencyInfo, ProjectType, DependencyType
+from ..parsers.base import DependencyInfo, DependencyType, ProjectInfo, ProjectType
 from ..utils.file_utils import format_size
 
 logger = logging.getLogger(__name__)

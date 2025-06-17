@@ -6,10 +6,10 @@ Depx 解析器模块
 
 from .base import (
     BaseParser,
-    ProjectInfo,
     DependencyInfo,
     GlobalDependencyInfo,
     PackageManagerType,
+    ProjectInfo,
 )
 from .nodejs import NodeJSParser
 from .python import PythonParser

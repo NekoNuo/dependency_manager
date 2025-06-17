@@ -4,13 +4,13 @@
 负责扫描系统中各种包管理器的全局安装依赖
 """
 
-import logging
-import subprocess
 import json
+import logging
 import os
-from pathlib import Path
-from typing import List, Dict, Optional, Set
+import subprocess
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional, Set
 
 from ..parsers.base import GlobalDependencyInfo, PackageManagerType
 from ..utils.file_utils import get_directory_size, safe_read_json

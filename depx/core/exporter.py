@@ -4,15 +4,15 @@ Export functionality for analysis results
 Support multiple export formats: JSON, CSV, HTML
 """
 
-import json
 import csv
+import json
 import logging
+from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-from dataclasses import asdict
+from typing import Any, Dict, List, Optional
 
-from ..parsers.base import ProjectInfo, DependencyInfo, GlobalDependencyInfo
+from ..parsers.base import DependencyInfo, GlobalDependencyInfo, ProjectInfo
 from ..utils.file_utils import format_size
 
 logger = logging.getLogger(__name__)
@@ -20,20 +20,21 @@ logger = logging.getLogger(__name__)
 
 class AnalysisExporter:
     """Export analysis results to various formats"""
-    
+
     def __init__(self):
         self.timestamp = datetime.now().isoformat()
-    
-    def export_projects(self, projects: List[ProjectInfo], 
-                       output_path: Path, format: str = "json") -> bool:
+
+    def export_projects(
+        self, projects: List[ProjectInfo], output_path: Path, format: str = "json"
+    ) -> bool:
         """
         Export project analysis results
-        
+
         Args:
             projects: List of projects to export
             output_path: Output file path
             format: Export format ('json', 'csv', 'html')
-            
+
         Returns:
             True if export successful
         """
@@ -50,17 +51,21 @@ class AnalysisExporter:
         except Exception as e:
             logger.error(f"Failed to export projects: {e}")
             return False
-    
-    def export_dependencies(self, dependencies: List[GlobalDependencyInfo], 
-                          output_path: Path, format: str = "json") -> bool:
+
+    def export_dependencies(
+        self,
+        dependencies: List[GlobalDependencyInfo],
+        output_path: Path,
+        format: str = "json",
+    ) -> bool:
         """
         Export global dependencies analysis
-        
+
         Args:
             dependencies: List of global dependencies
             output_path: Output file path
             format: Export format ('json', 'csv', 'html')
-            
+
         Returns:
             True if export successful
         """
@@ -77,17 +82,18 @@ class AnalysisExporter:
         except Exception as e:
             logger.error(f"Failed to export dependencies: {e}")
             return False
-    
-    def export_analysis_report(self, report: Dict[str, Any], 
-                             output_path: Path, format: str = "json") -> bool:
+
+    def export_analysis_report(
+        self, report: Dict[str, Any], output_path: Path, format: str = "json"
+    ) -> bool:
         """
         Export complete analysis report
-        
+
         Args:
             report: Analysis report from DependencyAnalyzer
             output_path: Output file path
             format: Export format ('json', 'html')
-            
+
         Returns:
             True if export successful
         """
@@ -102,31 +108,35 @@ class AnalysisExporter:
         except Exception as e:
             logger.error(f"Failed to export analysis report: {e}")
             return False
-    
-    def _export_projects_json(self, projects: List[ProjectInfo], output_path: Path) -> bool:
+
+    def _export_projects_json(
+        self, projects: List[ProjectInfo], output_path: Path
+    ) -> bool:
         """Export projects to JSON format"""
         data = {
             "export_info": {
                 "timestamp": self.timestamp,
                 "format": "json",
                 "type": "projects",
-                "count": len(projects)
+                "count": len(projects),
             },
-            "projects": []
+            "projects": [],
         }
-        
+
         for project in projects:
             project_data = {
                 "name": project.name,
                 "path": str(project.path),
                 "project_type": project.project_type.value,
-                "config_file": str(project.config_file) if project.config_file else None,
+                "config_file": (
+                    str(project.config_file) if project.config_file else None
+                ),
                 "total_size_bytes": project.total_size_bytes,
                 "total_size_formatted": format_size(project.total_size_bytes),
                 "metadata": project.metadata,
-                "dependencies": []
+                "dependencies": [],
             }
-            
+
             for dep in project.dependencies:
                 dep_data = {
                     "name": dep.name,
@@ -135,67 +145,81 @@ class AnalysisExporter:
                     "dependency_type": dep.dependency_type.value,
                     "size_bytes": dep.size_bytes,
                     "size_formatted": format_size(dep.size_bytes),
-                    "install_path": str(dep.install_path) if dep.install_path else None
+                    "install_path": str(dep.install_path) if dep.install_path else None,
                 }
                 project_data["dependencies"].append(dep_data)
-            
+
             data["projects"].append(project_data)
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
+
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        
+
         logger.info(f"Exported {len(projects)} projects to {output_path}")
         return True
-    
-    def _export_projects_csv(self, projects: List[ProjectInfo], output_path: Path) -> bool:
+
+    def _export_projects_csv(
+        self, projects: List[ProjectInfo], output_path: Path
+    ) -> bool:
         """Export projects to CSV format"""
-        with open(output_path, 'w', newline='', encoding='utf-8') as f:
+        with open(output_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            
+
             # Write header
-            writer.writerow([
-                "Project Name", "Project Type", "Path", "Config File",
-                "Total Dependencies", "Total Size (Bytes)", "Total Size (Formatted)"
-            ])
-            
+            writer.writerow(
+                [
+                    "Project Name",
+                    "Project Type",
+                    "Path",
+                    "Config File",
+                    "Total Dependencies",
+                    "Total Size (Bytes)",
+                    "Total Size (Formatted)",
+                ]
+            )
+
             # Write project data
             for project in projects:
-                writer.writerow([
-                    project.name,
-                    project.project_type.value,
-                    str(project.path),
-                    str(project.config_file) if project.config_file else "",
-                    len(project.dependencies),
-                    project.total_size_bytes,
-                    format_size(project.total_size_bytes)
-                ])
-        
+                writer.writerow(
+                    [
+                        project.name,
+                        project.project_type.value,
+                        str(project.path),
+                        str(project.config_file) if project.config_file else "",
+                        len(project.dependencies),
+                        project.total_size_bytes,
+                        format_size(project.total_size_bytes),
+                    ]
+                )
+
         logger.info(f"Exported {len(projects)} projects to {output_path}")
         return True
-    
-    def _export_projects_html(self, projects: List[ProjectInfo], output_path: Path) -> bool:
+
+    def _export_projects_html(
+        self, projects: List[ProjectInfo], output_path: Path
+    ) -> bool:
         """Export projects to HTML format"""
         html_content = self._generate_projects_html(projects)
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
+
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_content)
-        
+
         logger.info(f"Exported {len(projects)} projects to {output_path}")
         return True
-    
-    def _export_dependencies_json(self, dependencies: List[GlobalDependencyInfo], 
-                                output_path: Path) -> bool:
+
+    def _export_dependencies_json(
+        self, dependencies: List[GlobalDependencyInfo], output_path: Path
+    ) -> bool:
         """Export global dependencies to JSON format"""
         data = {
             "export_info": {
                 "timestamp": self.timestamp,
                 "format": "json",
                 "type": "global_dependencies",
-                "count": len(dependencies)
+                "count": len(dependencies),
             },
-            "dependencies": []
+            "dependencies": [],
         }
-        
+
         for dep in dependencies:
             dep_data = {
                 "name": dep.name,
@@ -203,80 +227,96 @@ class AnalysisExporter:
                 "package_manager": dep.package_manager.value,
                 "size_bytes": dep.size_bytes,
                 "size_formatted": format_size(dep.size_bytes),
-                "install_path": str(dep.install_path) if dep.install_path else None
+                "install_path": str(dep.install_path) if dep.install_path else None,
             }
             data["dependencies"].append(dep_data)
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
+
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        
-        logger.info(f"Exported {len(dependencies)} global dependencies to {output_path}")
+
+        logger.info(
+            f"Exported {len(dependencies)} global dependencies to {output_path}"
+        )
         return True
-    
-    def _export_dependencies_csv(self, dependencies: List[GlobalDependencyInfo], 
-                               output_path: Path) -> bool:
+
+    def _export_dependencies_csv(
+        self, dependencies: List[GlobalDependencyInfo], output_path: Path
+    ) -> bool:
         """Export global dependencies to CSV format"""
-        with open(output_path, 'w', newline='', encoding='utf-8') as f:
+        with open(output_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
-            
+
             # Write header
-            writer.writerow([
-                "Name", "Version", "Package Manager", 
-                "Size (Bytes)", "Size (Formatted)", "Install Path"
-            ])
-            
+            writer.writerow(
+                [
+                    "Name",
+                    "Version",
+                    "Package Manager",
+                    "Size (Bytes)",
+                    "Size (Formatted)",
+                    "Install Path",
+                ]
+            )
+
             # Write dependency data
             for dep in dependencies:
-                writer.writerow([
-                    dep.name,
-                    dep.version,
-                    dep.package_manager.value,
-                    dep.size_bytes,
-                    format_size(dep.size_bytes),
-                    str(dep.install_path) if dep.install_path else ""
-                ])
-        
-        logger.info(f"Exported {len(dependencies)} global dependencies to {output_path}")
+                writer.writerow(
+                    [
+                        dep.name,
+                        dep.version,
+                        dep.package_manager.value,
+                        dep.size_bytes,
+                        format_size(dep.size_bytes),
+                        str(dep.install_path) if dep.install_path else "",
+                    ]
+                )
+
+        logger.info(
+            f"Exported {len(dependencies)} global dependencies to {output_path}"
+        )
         return True
-    
-    def _export_dependencies_html(self, dependencies: List[GlobalDependencyInfo], 
-                                output_path: Path) -> bool:
+
+    def _export_dependencies_html(
+        self, dependencies: List[GlobalDependencyInfo], output_path: Path
+    ) -> bool:
         """Export global dependencies to HTML format"""
         html_content = self._generate_dependencies_html(dependencies)
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
+
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_content)
-        
-        logger.info(f"Exported {len(dependencies)} global dependencies to {output_path}")
+
+        logger.info(
+            f"Exported {len(dependencies)} global dependencies to {output_path}"
+        )
         return True
-    
+
     def _export_report_json(self, report: Dict[str, Any], output_path: Path) -> bool:
         """Export analysis report to JSON format"""
         data = {
             "export_info": {
                 "timestamp": self.timestamp,
                 "format": "json",
-                "type": "analysis_report"
+                "type": "analysis_report",
             },
-            "report": report
+            "report": report,
         }
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
+
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-        
+
         logger.info(f"Exported analysis report to {output_path}")
         return True
-    
+
     def _export_report_html(self, report: Dict[str, Any], output_path: Path) -> bool:
         """Export analysis report to HTML format"""
         html_content = self._generate_report_html(report)
-        
-        with open(output_path, 'w', encoding='utf-8') as f:
+
+        with open(output_path, "w", encoding="utf-8") as f:
             f.write(html_content)
-        
+
         logger.info(f"Exported analysis report to {output_path}")
         return True
-    
+
     def _generate_projects_html(self, projects: List[ProjectInfo]) -> str:
         """Generate HTML content for projects"""
         html = f"""
@@ -316,7 +356,7 @@ class AnalysisExporter:
         </thead>
         <tbody>
 """
-        
+
         for project in projects:
             html += f"""
             <tr>
@@ -327,7 +367,7 @@ class AnalysisExporter:
                 <td>{format_size(project.total_size_bytes)}</td>
             </tr>
 """
-        
+
         html += """
         </tbody>
     </table>
@@ -335,8 +375,10 @@ class AnalysisExporter:
 </html>
 """
         return html
-    
-    def _generate_dependencies_html(self, dependencies: List[GlobalDependencyInfo]) -> str:
+
+    def _generate_dependencies_html(
+        self, dependencies: List[GlobalDependencyInfo]
+    ) -> str:
         """Generate HTML content for global dependencies"""
         html = f"""
 <!DOCTYPE html>
@@ -375,7 +417,7 @@ class AnalysisExporter:
         </thead>
         <tbody>
 """
-        
+
         for dep in dependencies:
             html += f"""
             <tr>
@@ -386,7 +428,7 @@ class AnalysisExporter:
                 <td>{dep.install_path if dep.install_path else 'Unknown'}</td>
             </tr>
 """
-        
+
         html += """
         </tbody>
     </table>
@@ -394,11 +436,11 @@ class AnalysisExporter:
 </html>
 """
         return html
-    
+
     def _generate_report_html(self, report: Dict[str, Any]) -> str:
         """Generate HTML content for analysis report"""
         summary = report.get("summary", {})
-        
+
         html = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -433,13 +475,13 @@ class AnalysisExporter:
             </thead>
             <tbody>
 """
-        
+
         dep_stats = report.get("dependency_stats", {})
         largest_deps = dep_stats.get("largest_dependencies", [])
-        
+
         for name, size in largest_deps[:10]:  # Top 10
             html += f"<tr><td>{name}</td><td>{format_size(size)}</td></tr>"
-        
+
         html += """
             </tbody>
         </table>

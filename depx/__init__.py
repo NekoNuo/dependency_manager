@@ -8,9 +8,9 @@ __version__ = "0.4.0"
 __author__ = "Depx Team"
 __description__ = "本地多语言依赖统一管理器"
 
-from .core.scanner import ProjectScanner
 from .core.analyzer import DependencyAnalyzer
 from .core.global_scanner import GlobalScanner
+from .core.scanner import ProjectScanner
 
 __all__ = [
     "ProjectScanner",
