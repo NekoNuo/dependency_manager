@@ -8,7 +8,7 @@ import logging
 import subprocess
 import re
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 
 from .base import BaseParser, ProjectInfo, DependencyInfo, ProjectType, DependencyType
 from ..utils.file_utils import safe_read_json, get_directory_size
@@ -311,7 +311,7 @@ class PythonParser(BaseParser):
         
         return dependencies
     
-    def _parse_dependency_spec(self, dep_spec: str) -> tuple[str, str]:
+    def _parse_dependency_spec(self, dep_spec: str) -> Tuple[str, str]:
         """Parse dependency specification like 'requests>=2.25.0'"""
         match = re.match(r'^([a-zA-Z0-9_-]+)([>=<~!]+.*)?', dep_spec.strip())
         if match:
