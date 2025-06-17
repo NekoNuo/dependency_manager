@@ -28,7 +28,7 @@ class DependencyManager:
     def __init__(self):
         """初始化依赖管理器"""
         self.scanner = ProjectScanner()
-        
+
         # 包管理器映射
         self.package_managers: Dict[PackageManagerType, Type[BasePackageManager]] = {
             PackageManagerType.NPM: NPMManager,
@@ -36,7 +36,7 @@ class DependencyManager:
             PackageManagerType.PIP: PipManager,
             PackageManagerType.CARGO: CargoManager,
         }
-        
+
         # 项目类型到包管理器的映射
         self.project_to_managers: Dict[ProjectType, List[PackageManagerType]] = {
             ProjectType.NODEJS: [PackageManagerType.NPM, PackageManagerType.YARN],
@@ -70,14 +70,14 @@ class DependencyManager:
         """
         available_managers = []
         manager_types = self.project_to_managers.get(project_type, [])
-        
+
         for manager_type in manager_types:
             manager_class = self.package_managers.get(manager_type)
             if manager_class:
                 manager = manager_class(project_path)
                 if manager.is_available():
                     available_managers.append(manager)
-        
+
         return available_managers
 
     def detect_preferred_package_manager(self, project_path: Path, project_type: ProjectType) -> Optional[BasePackageManager]:
@@ -101,15 +101,15 @@ class DependencyManager:
                 # 默认使用 npm
                 npm_manager = NPMManager(project_path)
                 return npm_manager if npm_manager.is_available() else None
-        
+
         elif project_type == ProjectType.PYTHON:
             pip_manager = PipManager(project_path)
             return pip_manager if pip_manager.is_available() else None
-        
+
         elif project_type == ProjectType.RUST:
             cargo_manager = CargoManager(project_path)
             return cargo_manager if cargo_manager.is_available() else None
-        
+
         return None
 
     def install_package(
@@ -119,7 +119,7 @@ class DependencyManager:
         project_type: Optional[ProjectType] = None,
         package_manager: Optional[str] = None,
         dev: bool = False,
-        global_install: bool = False
+        global_install: bool = False,
     ) -> PackageManagerResult:
         """
         安装包
@@ -138,7 +138,7 @@ class DependencyManager:
         # 如果没有指定项目类型，尝试检测
         if not project_type and project_path:
             project_type = self.detect_project_type(project_path)
-        
+
         if not project_type:
             return PackageManagerResult(
                 success=False,
@@ -192,7 +192,7 @@ class DependencyManager:
         project_path: Optional[Path] = None,
         project_type: Optional[ProjectType] = None,
         package_manager: Optional[str] = None,
-        global_uninstall: bool = False
+        global_uninstall: bool = False,
     ) -> PackageManagerResult:
         """
         卸载包
@@ -210,7 +210,7 @@ class DependencyManager:
         # 如果没有指定项目类型，尝试检测
         if not project_type and project_path:
             project_type = self.detect_project_type(project_path)
-        
+
         if not project_type:
             return PackageManagerResult(
                 success=False,

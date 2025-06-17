@@ -12,7 +12,7 @@ from .cargo import CargoManager
 
 __all__ = [
     "BasePackageManager",
-    "PackageManagerResult", 
+    "PackageManagerResult",
     "NPMManager",
     "PipManager",
     "YarnManager",
