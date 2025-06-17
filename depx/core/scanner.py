@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from ..parsers.base import BaseParser, ProjectInfo, ProjectType
 from ..parsers.nodejs import NodeJSParser
+from ..parsers.python import PythonParser
 from ..utils.file_utils import is_hidden_directory
 
 logger = logging.getLogger(__name__)
@@ -28,8 +29,8 @@ class ProjectScanner:
         """注册所有支持的解析器"""
         parsers = [
             NodeJSParser(),
+            PythonParser(),
             # 后续添加其他语言的解析器
-            # PythonParser(),
             # JavaParser(),
             # GoParser(),
             # RustParser(),

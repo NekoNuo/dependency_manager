@@ -15,11 +15,13 @@ Depx 是一个强大的本地依赖管理工具，能够自动识别和分析本
 - 提供依赖的详细信息：名称、版本、大小、位置
 - 清晰展示项目依赖关系和层级结构
 - 支持多种排序和筛选方式
+- 多格式导出：JSON、CSV、HTML
 
 ### 💾 空间优化
 - 识别重复和冗余的依赖
 - 计算精确的磁盘占用空间
-- 提供智能清理建议
+- 智能清理开发依赖和缓存
+- 安全的依赖清理功能
 
 ### 🌐 跨平台支持
 - 在 Windows、macOS 和 Linux 上稳定运行
@@ -71,6 +73,16 @@ depx info /path/to/project
 
 # 扫描系统全局依赖
 depx global-deps
+
+# 清理开发依赖和缓存（新功能）
+depx clean . --type dev cache --dry-run
+
+# 导出分析结果（新功能）
+depx export . --format json --type projects
+
+# 管理配置文件（新功能）
+depx config --create
+depx config --show
 
 # 查看帮助
 depx --help
@@ -305,15 +317,20 @@ depx/
 
 ### ✅ 已支持
 - **Node.js**: package.json, node_modules, npm/yarn/pnpm
+- **Python**: requirements.txt, setup.py, pyproject.toml, Pipfile, venv 🆕
 - **全局依赖**: npm 全局包、pip 全局包、yarn 全局包
+- **依赖清理**: 开发依赖、缓存文件、大型依赖 🆕
+- **导出功能**: JSON、CSV、HTML 格式 🆕
+- **配置管理**: YAML 配置文件支持 🆕
 
 ### 🚧 计划支持
-- **Python**: requirements.txt, setup.py, pyproject.toml, venv
 - **Java**: pom.xml, build.gradle, Maven/Gradle 缓存
 - **Go**: go.mod, go.sum, GOPATH/GOMODCACHE
 - **Rust**: Cargo.toml, Cargo.lock, ~/.cargo
 - **PHP**: composer.json, vendor/
 - **C#**: *.csproj, packages.config, NuGet 缓存
+- **依赖安全扫描**: 检查已知漏洞
+- **依赖更新检查**: 检查过时的依赖
 
 ## 🧪 运行测试
 
@@ -423,26 +440,31 @@ python -m pytest tests/ -v --cov=depx
 
 ## 🗺️ 开发路线图
 
-### v0.4.0 (当前)
+### v0.4.0 (当前) 🎉
 - ✅ 基础架构搭建
 - ✅ Node.js 项目支持
+- ✅ Python 项目支持 🆕
 - ✅ 全局依赖扫描 (npm, pip, yarn)
+- ✅ 依赖清理功能 🆕
+- ✅ 多格式导出 (JSON, CSV, HTML) 🆕
+- ✅ 配置文件支持 (YAML) 🆕
 - ✅ 完整的命令行界面
 - ✅ 全面的测试覆盖
 - ✅ GitHub Actions CI/CD
 - ✅ PyPI 自动发布
 
-### v0.2.0 (计划中)
-- 🚧 Python 项目支持
-- 🚧 依赖清理功能
-- 🚧 配置文件支持
+### v0.5.0 (计划中)
+- 🚧 Java/Maven/Gradle 支持
+- 🚧 Go 项目支持
+- 🚧 依赖安全扫描
+- 🚧 依赖更新检查
 - 🚧 性能优化
 
-### v0.3.0 (未来)
-- 🔮 Java/Maven/Gradle 支持
-- 🔮 Go 项目支持
+### v0.6.0 (未来)
+- 🔮 Rust 项目支持
+- 🔮 PHP 项目支持
 - 🔮 Web 界面 (可选)
-- 🔮 依赖安全扫描
+- 🔮 插件系统
 
 ## 📞 联系我们
 

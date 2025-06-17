@@ -12,6 +12,7 @@ from .base import (
     PackageManagerType,
 )
 from .nodejs import NodeJSParser
+from .python import PythonParser
 
 __all__ = [
     "BaseParser",
@@ -20,4 +21,5 @@ __all__ = [
     "GlobalDependencyInfo",
     "PackageManagerType",
     "NodeJSParser",
+    "PythonParser",
 ]
