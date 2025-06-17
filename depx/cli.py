@@ -121,7 +121,7 @@ class CustomGroup(click.Group):
 
 
 @click.group(cls=CustomGroup)
-@click.version_option(version="0.6.0")
+@click.version_option(version="0.7.0")
 @click.option(
     "--verbose", "-v", is_flag=True, help="Enable verbose output with detailed logging"
 )
