@@ -18,7 +18,7 @@ NC='\033[0m' # No Color
 show_banner() {
     echo -e "${CYAN}"
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║                        🚀 Depx v0.8.6                        ║"
+    echo "║                        🚀 Depx v0.8.7                        ║"
     echo "║                   跨语言依赖管理工具                          ║"
     echo "║                     一键安装运行脚本                         ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
@@ -171,7 +171,7 @@ show_usage_menu() {
     echo "6. 🚪 退出"
     echo -e "${NC}"
     
-    read -p "请输入选项编号 (1-6): " choice
+    read -p "请输入选项编号 (1-6): " choice < /dev/tty
     
     case $choice in
         1)
@@ -182,12 +182,34 @@ show_usage_menu() {
             echo -e "${BLUE}📋 进入命令行模式...${NC}"
             echo "输入 'exit' 退出"
             while true; do
-                read -p "depx> " cmd
+                read -p "depx> " cmd < /dev/tty
                 if [[ "$cmd" == "exit" || "$cmd" == "quit" ]]; then
                     break
                 fi
                 if [[ -n "$cmd" ]]; then
-                    $PYTHON_CMD run_depx.py $cmd
+                    # 特殊处理帮助命令
+                    if [[ "$cmd" == "--help" || "$cmd" == "-h" || "$cmd" == "help" ]]; then
+                        echo -e "${BLUE}📋 Depx 可用命令：${NC}"
+                        echo "  info [路径]          - 分析项目依赖"
+                        echo "  search <包名>        - 搜索包"
+                        echo "  install <包名>       - 安装包"
+                        echo "  uninstall <包名>     - 卸载包"
+                        echo "  update [包名]        - 更新包"
+                        echo "  clean [路径]         - 清理依赖"
+                        echo "  scan [路径]          - 扫描项目"
+                        echo "  global-deps          - 全局依赖"
+                        echo "  export [路径]        - 导出结果"
+                        echo "  config               - 配置管理"
+                        echo "  --version            - 显示版本"
+                        echo "  --help               - 显示帮助"
+                        echo ""
+                        echo "示例："
+                        echo "  info .               - 分析当前目录"
+                        echo "  search lodash        - 搜索 lodash 包"
+                        echo "  install express      - 安装 express 包"
+                    else
+                        $PYTHON_CMD run_depx.py $cmd
+                    fi
                 fi
             done
             ;;
@@ -196,7 +218,7 @@ show_usage_menu() {
             $PYTHON_CMD run_depx.py info .
             ;;
         4)
-            read -p "🔍 请输入要搜索的包名: " package
+            read -p "🔍 请输入要搜索的包名: " package < /dev/tty
             if [[ -n "$package" ]]; then
                 $PYTHON_CMD run_depx.py search "$package"
             fi
@@ -226,26 +248,53 @@ cleanup() {
 # 设置清理陷阱
 trap cleanup EXIT
 
+# 检查是否可以交互
+check_interactive() {
+    if [[ ! -t 0 ]]; then
+        echo -e "${YELLOW}⚠️  检测到非交互模式（可能通过管道执行）${NC}"
+        echo -e "${BLUE}💡 建议下载脚本后本地运行以获得完整交互体验：${NC}"
+        echo ""
+        echo -e "${GREEN}# 下载脚本${NC}"
+        echo "curl -fsSL https://raw.githubusercontent.com/NekoNuo/depx/master/install_and_run.sh -o install_depx.sh"
+        echo ""
+        echo -e "${GREEN}# 运行脚本${NC}"
+        echo "bash install_depx.sh"
+        echo ""
+        echo -e "${BLUE}🚀 现在将自动运行快速分析演示...${NC}"
+        sleep 3
+        $PYTHON_CMD run_depx.py info .
+        echo ""
+        echo -e "${GREEN}✨ 演示完成！要获得完整功能，请下载脚本本地运行。${NC}"
+        return 1
+    fi
+    return 0
+}
+
 # 主函数
 main() {
     show_banner
-    
+
     echo -e "${BLUE}🔍 正在检查系统环境...${NC}"
     check_os
     check_python
     check_pip
-    
+
     create_temp_dir
     download_depx
     install_dependencies
-    
+
     echo -e "${GREEN}🎉 安装完成！${NC}"
-    
+
+    # 检查是否可以交互
+    if ! check_interactive; then
+        return 0
+    fi
+
     # 循环显示菜单
     while true; do
         show_usage_menu
         echo ""
-        read -p "是否继续使用？(Y/n): " continue_choice
+        read -p "是否继续使用？(Y/n): " continue_choice < /dev/tty
         if [[ "$continue_choice" =~ ^[Nn]$ ]]; then
             echo -e "${GREEN}👋 感谢使用 Depx！${NC}"
             break

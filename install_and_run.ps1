@@ -17,7 +17,7 @@ try {
 # 显示横幅
 function Show-Banner {
     Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "║                        🚀 Depx v0.8.6                        ║" -ForegroundColor Cyan
+    Write-Host "║                        🚀 Depx v0.8.7                        ║" -ForegroundColor Cyan
     Write-Host "║                   跨语言依赖管理工具                          ║" -ForegroundColor Cyan
     Write-Host "║                     一键安装运行脚本                         ║" -ForegroundColor Cyan
     Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
@@ -156,9 +156,12 @@ function Show-UsageMenu {
         "1" {
             Write-Host "启动交互式界面..." -ForegroundColor Blue
             try {
+                # 设置编码并运行交互界面
+                $env:PYTHONIOENCODING = "utf-8"
                 & $pythonCmd interactive_depx.py
             } catch {
-                Write-Host "Unicode 错误，尝试简化模式..." -ForegroundColor Yellow
+                Write-Host "交互界面启动失败，尝试简化模式..." -ForegroundColor Yellow
+                Write-Host "错误信息: $($_.Exception.Message)" -ForegroundColor Red
                 & $pythonCmd run_depx_simple.py info .
             }
         }
@@ -171,11 +174,35 @@ function Show-UsageMenu {
                     break
                 }
                 if ($cmd) {
-                    try {
-                        Invoke-Expression "$pythonCmd run_depx.py $cmd"
-                    } catch {
-                        Write-Host "Unicode 错误，尝试简化模式..." -ForegroundColor Yellow
-                        Invoke-Expression "$pythonCmd run_depx_simple.py $cmd"
+                    # 特殊处理帮助命令
+                    if ($cmd -eq "--help" -or $cmd -eq "-h" -or $cmd -eq "help") {
+                        Write-Host "Depx 可用命令：" -ForegroundColor Blue
+                        Write-Host "  info [路径]          - 分析项目依赖"
+                        Write-Host "  search <包名>        - 搜索包"
+                        Write-Host "  install <包名>       - 安装包"
+                        Write-Host "  uninstall <包名>     - 卸载包"
+                        Write-Host "  update [包名]        - 更新包"
+                        Write-Host "  clean [路径]         - 清理依赖"
+                        Write-Host "  scan [路径]          - 扫描项目"
+                        Write-Host "  global-deps          - 全局依赖"
+                        Write-Host "  export [路径]        - 导出结果"
+                        Write-Host "  config               - 配置管理"
+                        Write-Host "  --version            - 显示版本"
+                        Write-Host "  --help               - 显示帮助"
+                        Write-Host ""
+                        Write-Host "示例："
+                        Write-Host "  info .               - 分析当前目录"
+                        Write-Host "  search lodash        - 搜索 lodash 包"
+                        Write-Host "  install express      - 安装 express 包"
+                    } else {
+                        try {
+                            $env:PYTHONIOENCODING = "utf-8"
+                            Invoke-Expression "$pythonCmd run_depx.py $cmd"
+                        } catch {
+                            Write-Host "命令执行失败，尝试简化模式..." -ForegroundColor Yellow
+                            Write-Host "错误信息: $($_.Exception.Message)" -ForegroundColor Red
+                            Invoke-Expression "$pythonCmd run_depx_simple.py $cmd"
+                        }
                     }
                 }
             } while ($true)

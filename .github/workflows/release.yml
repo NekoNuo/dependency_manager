@@ -58,7 +58,7 @@ jobs:
         
     - name: Generate release notes
       run: |
-        echo "# Depx v${{ github.ref_name }} Release Notes" > release_notes.md
+        echo "# Depx ${{ github.ref_name }} Release Notes" > release_notes.md
         echo "" >> release_notes.md
         echo "## 🚀 一键运行" >> release_notes.md
         echo "" >> release_notes.md
