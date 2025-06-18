@@ -5,7 +5,7 @@ Depx 版本管理
 """
 
 # 版本号配置 - 只需要修改这里！
-VERSION = "0.8.9"
+VERSION = "0.9.0"
 
 # 需要更新版本号的文件列表
 VERSION_FILES = {

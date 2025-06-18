@@ -17,7 +17,7 @@ try {
 # 显示横幅
 function Show-Banner {
     Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "║                        🚀 Depx v0.8.9                        ║" -ForegroundColor Cyan
+    Write-Host "║                        🚀 Depx v0.9.0                        ║" -ForegroundColor Cyan
     Write-Host "║                   跨语言依赖管理工具                          ║" -ForegroundColor Cyan
     Write-Host "║                     一键安装运行脚本                         ║" -ForegroundColor Cyan
     Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
@@ -156,61 +156,129 @@ function Show-UsageMenu {
     switch ($choice) {
         "1" {
             Write-Host "启动交互式界面..." -ForegroundColor Blue
-            Write-Host "注意：Windows 交互界面可能存在兼容性问题" -ForegroundColor Yellow
-            Write-Host "如果卡死，请按 Ctrl+C 退出，然后选择选项 2（命令行模式）" -ForegroundColor Yellow
+            try {
+                # 检查是否有专门的 Windows 交互脚本
+                if (Test-Path "windows_interactive.ps1") {
+                    Write-Host "使用 Windows 优化交互界面..." -ForegroundColor Green
+                    & powershell -ExecutionPolicy Bypass -File "windows_interactive.ps1" -PythonCmd $pythonCmd
+                } else {
+                    Write-Host "使用内置交互模式..." -ForegroundColor Yellow
+                    # 内置简化交互模式
+                    & powershell -Command "
+                        `$env:PYTHONIOENCODING = 'utf-8'
+                        Write-Host '=' * 60 -ForegroundColor Cyan
+                        Write-Host '                    Depx v0.8.9' -ForegroundColor Cyan
+                        Write-Host '               跨语言依赖管理工具' -ForegroundColor Cyan
+                        Write-Host '                Windows 交互模式' -ForegroundColor Cyan
+                        Write-Host '=' * 60 -ForegroundColor Cyan
+                        Write-Host ''
 
-            $choice = Read-Host "是否继续启动交互界面？(y/N)"
-            if ($choice -match "^[Yy]$") {
-                try {
-                    # Windows 特殊处理：设置控制台编码和环境变量
-                    $env:PYTHONIOENCODING = "utf-8"
-                    $env:PYTHONLEGACYWINDOWSSTDIO = "1"
+                        do {
+                            Write-Host '请选择操作：'
+                            Write-Host '1. 分析当前目录'
+                            Write-Host '2. 搜索包 (所有包管理器)'
+                            Write-Host '3. 显示帮助'
+                            Write-Host '0. 退出'
 
-                    # 尝试设置控制台代码页为 UTF-8
-                    try {
-                        chcp 65001 | Out-Null
-                    } catch {
-                        # 忽略 chcp 错误
-                    }
+                            `$choice = Read-Host '请输入选项 (0-3)'
 
-                    Write-Host "正在启动交互界面，如果卡死请按 Ctrl+C..." -ForegroundColor Cyan
-
-                    # 运行交互界面，使用 -u 参数确保输出不缓冲
-                    & $pythonCmd -u interactive_depx.py
-                } catch {
-                    Write-Host "交互界面启动失败，自动切换到命令行模式..." -ForegroundColor Yellow
-                    Write-Host "错误信息: $($_.Exception.Message)" -ForegroundColor Red
-
-                    # 自动进入命令行模式
-                    Write-Host "进入命令行模式..." -ForegroundColor Blue
-                    Write-Host "输入 'exit' 退出"
-                    do {
-                        $cmd = Read-Host "depx>"
-                        if ($cmd -eq "exit" -or $cmd -eq "quit") {
-                            break
-                        }
-                        if ($cmd) {
-                            try {
-                                $env:PYTHONIOENCODING = "utf-8"
-                                $env:PYTHONLEGACYWINDOWSSTDIO = "1"
-                                Invoke-Expression "$pythonCmd -m depx $cmd"
-                            } catch {
-                                Write-Host "命令执行失败: $($_.Exception.Message)" -ForegroundColor Red
+                            switch (`$choice) {
+                                '1' {
+                                    Write-Host '分析当前目录...' -ForegroundColor Blue
+                                    & $pythonCmd -m depx info .
+                                }
+                                '2' {
+                                    `$pkg = Read-Host '请输入要搜索的包名'
+                                    if (`$pkg) {
+                                        Write-Host '搜索包: ' `$pkg ' (所有包管理器)' -ForegroundColor Blue
+                                        & $pythonCmd -m depx search `$pkg
+                                    }
+                                }
+                                '3' {
+                                    & $pythonCmd -m depx --help
+                                }
+                                '0' {
+                                    Write-Host '退出交互模式' -ForegroundColor Green
+                                    break
+                                }
+                                default {
+                                    Write-Host '无效选项' -ForegroundColor Red
+                                }
                             }
-                        }
-                    } while ($true)
+
+                            if (`$choice -ne '0') {
+                                Read-Host '按 Enter 继续...'
+                                Write-Host ''
+                            }
+                        } while (`$choice -ne '0')
+                    "
                 }
-            } else {
-                Write-Host "已取消，请选择其他选项" -ForegroundColor Yellow
+            } catch {
+                Write-Host "交互界面启动失败: $($_.Exception.Message)" -ForegroundColor Red
+                Write-Host "请尝试选项 3（命令行模式）" -ForegroundColor Yellow
             }
         }
         "2" {
-            Write-Host "启动简化交互界面..." -ForegroundColor Blue
+            Write-Host "快速操作模式..." -ForegroundColor Blue
             try {
                 $env:PYTHONIOENCODING = "utf-8"
-                & $pythonCmd interactive_depx_simple.py
+
+                Write-Host "=" * 50 -ForegroundColor Green
+                Write-Host "           Depx 快速操作" -ForegroundColor Green
+                Write-Host "=" * 50 -ForegroundColor Green
+                Write-Host ""
+
+                do {
+                    Write-Host "快速操作选项："
+                    Write-Host "1. 分析当前目录"
+                    Write-Host "2. 搜索包 (所有包管理器)"
+                    Write-Host "3. 显示版本信息"
+                    Write-Host "0. 返回主菜单"
+
+                    $quickChoice = Read-Host "请输入选项 (0-3)"
+
+                    switch ($quickChoice) {
+                        "1" {
+                            Write-Host ""
+                            Write-Host "分析当前目录..." -ForegroundColor Blue
+                            & $pythonCmd -m depx info .
+                        }
+                        "2" {
+                            Write-Host ""
+                            $pkg = Read-Host "请输入要搜索的包名"
+                            if ($pkg) {
+                                Write-Host "搜索包: $pkg (所有包管理器)" -ForegroundColor Blue
+                                & $pythonCmd -m depx search $pkg
+                            }
+                        }
+                        "3" {
+                            Write-Host ""
+                            Write-Host "Depx 版本信息:" -ForegroundColor Blue
+                            & $pythonCmd -m depx --version
+                            Write-Host ""
+                            Write-Host "可用命令:" -ForegroundColor Blue
+                            Write-Host "  info .        - 分析当前目录"
+                            Write-Host "  search <包名> - 搜索包 (所有包管理器)"
+                            Write-Host "  --help        - 显示完整帮助"
+                        }
+                        "0" {
+                            Write-Host "返回主菜单" -ForegroundColor Green
+                            break
+                        }
+                        default {
+                            Write-Host "无效选项，请输入 0-3" -ForegroundColor Red
+                        }
+                    }
+
+                    if ($quickChoice -ne "0") {
+                        Write-Host ""
+                        Read-Host "按 Enter 继续..."
+                        Write-Host ""
+                    }
+                } while ($quickChoice -ne "0")
+
             } catch {
-                Write-Host "简化交互界面启动失败: $($_.Exception.Message)" -ForegroundColor Red
+                Write-Host "快速操作模式失败: $($_.Exception.Message)" -ForegroundColor Red
                 Write-Host "请尝试命令行模式 (选项 3)" -ForegroundColor Yellow
             }
         }
