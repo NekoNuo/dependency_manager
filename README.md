@@ -51,6 +51,21 @@ irm https://raw.githubusercontent.com/NekoNuo/depx/master/install_and_run.ps1 | 
 - ✅ 提供交互界面
 - ✅ 使用完毕后自动清理
 
+### 本地运行方式
+
+如果已下载项目，可以使用以下方式：
+
+```bash
+# 一键启动（推荐）
+python quick_start.py
+
+# 交互式界面
+python interactive_depx.py
+
+# 直接命令行
+python run_depx.py [命令] [选项]
+```
+
 ### 安装
 
 #### 从 PyPI 安装（推荐）
