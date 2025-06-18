@@ -73,13 +73,25 @@ check_python() {
 
 # 检查 pip
 check_pip() {
-    if command -v pip3 &> /dev/null; then
-        PIP_CMD="pip3"
-    elif command -v pip &> /dev/null; then
-        PIP_CMD="pip"
+    # 优先使用与 Python 对应的 pip
+    if [[ "$PYTHON_CMD" == "python3" ]]; then
+        if command -v pip3 &> /dev/null; then
+            PIP_CMD="pip3"
+        elif $PYTHON_CMD -m pip --version &> /dev/null; then
+            PIP_CMD="$PYTHON_CMD -m pip"
+        else
+            echo -e "${RED}❌ 未找到 pip3，请先安装 pip${NC}"
+            exit 1
+        fi
     else
-        echo -e "${RED}❌ 未找到 pip，请先安装 pip${NC}"
-        exit 1
+        if command -v pip &> /dev/null; then
+            PIP_CMD="pip"
+        elif $PYTHON_CMD -m pip --version &> /dev/null; then
+            PIP_CMD="$PYTHON_CMD -m pip"
+        else
+            echo -e "${RED}❌ 未找到 pip，请先安装 pip${NC}"
+            exit 1
+        fi
     fi
     echo -e "${GREEN}✅ 找到 pip: $PIP_CMD${NC}"
 }

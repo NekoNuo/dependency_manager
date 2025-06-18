@@ -4,6 +4,16 @@
 # 设置错误处理
 $ErrorActionPreference = "Stop"
 
+# 设置控制台编码为 UTF-8
+try {
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+    $env:PYTHONIOENCODING = "utf-8"
+} catch {
+    # 如果设置失败，继续执行但使用简化输出
+    $global:UseSimpleOutput = $true
+}
+
 # 显示横幅
 function Show-Banner {
     Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
@@ -144,11 +154,16 @@ function Show-UsageMenu {
     
     switch ($choice) {
         "1" {
-            Write-Host "🖥️ 启动交互式界面..." -ForegroundColor Blue
-            & $pythonCmd interactive_depx.py
+            Write-Host "启动交互式界面..." -ForegroundColor Blue
+            try {
+                & $pythonCmd interactive_depx.py
+            } catch {
+                Write-Host "Unicode 错误，尝试简化模式..." -ForegroundColor Yellow
+                & $pythonCmd run_depx_simple.py info .
+            }
         }
         "2" {
-            Write-Host "📋 进入命令行模式..." -ForegroundColor Blue
+            Write-Host "进入命令行模式..." -ForegroundColor Blue
             Write-Host "输入 'exit' 退出"
             do {
                 $cmd = Read-Host "depx>"
@@ -156,7 +171,12 @@ function Show-UsageMenu {
                     break
                 }
                 if ($cmd) {
-                    Invoke-Expression "$pythonCmd run_depx.py $cmd"
+                    try {
+                        Invoke-Expression "$pythonCmd run_depx.py $cmd"
+                    } catch {
+                        Write-Host "Unicode 错误，尝试简化模式..." -ForegroundColor Yellow
+                        Invoke-Expression "$pythonCmd run_depx_simple.py $cmd"
+                    }
                 }
             } while ($true)
         }

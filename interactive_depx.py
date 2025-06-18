@@ -11,6 +11,13 @@ import sys
 import os
 from pathlib import Path
 
+# 设置 UTF-8 编码
+if sys.platform == "win32":
+    import codecs
+    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
+    sys.stderr = codecs.getwriter("utf-8")(sys.stderr.detach())
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+
 # 添加当前目录到 Python 路径
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))

@@ -12,6 +12,13 @@ import os
 import subprocess
 from pathlib import Path
 
+# 设置 UTF-8 编码
+if sys.platform == "win32":
+    import codecs
+    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
+    sys.stderr = codecs.getwriter("utf-8")(sys.stderr.detach())
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+
 def check_python_version():
     """检查 Python 版本"""
     if sys.version_info < (3, 8):

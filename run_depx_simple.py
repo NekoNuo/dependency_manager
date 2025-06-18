@@ -1,28 +1,21 @@
 #!/usr/bin/env python3
 """
-Depx 独立运行脚本
+Depx 简化运行脚本 (无 emoji，兼容所有系统)
 无需安装即可使用 Depx 的所有功能
 
 使用方法:
-    python run_depx.py [命令] [选项]
-
+    python run_depx_simple.py [命令] [选项]
+    
 示例:
-    python run_depx.py info .
-    python run_depx.py search lodash
-    python run_depx.py install express
-    python run_depx.py update --check
+    python run_depx_simple.py info .
+    python run_depx_simple.py search lodash
+    python run_depx_simple.py install express
+    python run_depx_simple.py update --check
 """
 
 import sys
 import os
 from pathlib import Path
-
-# 设置 UTF-8 编码
-if sys.platform == "win32":
-    import codecs
-    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
-    sys.stderr = codecs.getwriter("utf-8")(sys.stderr.detach())
-    os.environ["PYTHONIOENCODING"] = "utf-8"
 
 # 添加当前目录到 Python 路径，以便导入 depx 模块
 current_dir = Path(__file__).parent
@@ -48,7 +41,7 @@ def check_dependencies():
         missing_deps.append("pyyaml")
     
     if missing_deps:
-        print("❌ 缺少必要的依赖包，请先安装：")
+        print("ERROR: 缺少必要的依赖包，请先安装：")
         print(f"pip install {' '.join(missing_deps)}")
         print("\n或者使用以下命令安装所有依赖：")
         print("pip install click rich pyyaml")
@@ -58,7 +51,7 @@ def check_dependencies():
 
 def main():
     """主函数"""
-    print("🚀 Depx 独立运行模式")
+    print("Depx 简化运行模式")
     print("=" * 50)
     
     # 检查依赖
@@ -71,7 +64,7 @@ def main():
         
         # 如果没有提供参数，显示帮助信息
         if len(sys.argv) == 1:
-            print("📋 可用命令：")
+            print("可用命令：")
             print("  info      - 分析项目依赖信息")
             print("  search    - 搜索包")
             print("  install   - 安装包")
@@ -81,22 +74,22 @@ def main():
             print("  scan      - 扫描全局依赖")
             print("  export    - 导出分析结果")
             print("  config    - 配置管理")
-            print("\n使用 'python run_depx.py [命令] --help' 查看详细帮助")
+            print("\n使用 'python run_depx_simple.py [命令] --help' 查看详细帮助")
             print("\n示例：")
-            print("  python run_depx.py info .")
-            print("  python run_depx.py search lodash")
-            print("  python run_depx.py install express")
+            print("  python run_depx_simple.py info .")
+            print("  python run_depx_simple.py search lodash")
+            print("  python run_depx_simple.py install express")
             sys.exit(0)
         
         # 运行 CLI
         cli()
         
     except ImportError as e:
-        print(f"❌ 导入错误: {e}")
+        print(f"ERROR: 导入错误: {e}")
         print("请确保在 Depx 项目根目录中运行此脚本")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ 运行错误: {e}")
+        print(f"ERROR: 运行错误: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
