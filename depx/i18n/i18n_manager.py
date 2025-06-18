@@ -51,7 +51,7 @@ class I18nManager:
         """
         if language in self._translations:
             self._current_language = language
-            logger.info(f"语言已切换到: {language}")
+            logger.debug(f"语言已切换到: {language}")
             return True
         else:
             if not silent:

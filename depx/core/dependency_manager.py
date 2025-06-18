@@ -337,8 +337,9 @@ class DependencyManager:
                 pass
             return []
 
-        # 如果启用搜索所有包管理器
-        if search_all:
+        # 如果启用搜索所有包管理器，或者没有指定特定包管理器，默认搜索所有
+        if search_all or not package_manager:
+            logger.debug("搜索所有可用的包管理器")
             all_results = []
             for manager_type, manager_class in self.package_managers.items():
                 manager = manager_class(project_path)
@@ -350,15 +351,7 @@ class DependencyManager:
                         logger.debug(f"搜索 {manager_type.value} 失败: {e}")
             return all_results
 
-        # 默认行为：根据项目类型选择包管理器
-        if not project_type and project_path:
-            project_type = self.detect_project_type(project_path)
-
-        if project_type:
-            manager = self.detect_preferred_package_manager(project_path, project_type)
-            if manager and manager.is_available():
-                return manager.search(package_name, limit=limit)
-
+        # 这个分支现在不会被执行，因为上面已经处理了所有情况
         return []
 
     def check_outdated_packages(

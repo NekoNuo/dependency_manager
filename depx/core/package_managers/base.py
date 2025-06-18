@@ -176,7 +176,7 @@ class BasePackageManager(ABC):
             操作结果
         """
         command_str = " ".join(cmd)
-        logger.info(f"执行命令: {command_str}")
+        logger.debug(f"执行命令: {command_str}")
 
         try:
             result = subprocess.run(
