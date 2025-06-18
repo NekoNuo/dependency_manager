@@ -13,7 +13,7 @@ try:
     __version__ = get_version()
 except ImportError:
     # 如果无法导入版本文件，使用默认版本
-    __version__ = "0.8.8"
+    __version__ = "0.8.9"
 __author__ = "Depx Team"
 __description__ = "本地多语言依赖统一管理器"
 
