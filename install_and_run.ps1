@@ -17,7 +17,7 @@ try {
 # 显示横幅
 function Show-Banner {
     Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "║                        🚀 Depx v0.8.5                        ║" -ForegroundColor Cyan
+    Write-Host "║                        🚀 Depx v0.8.6                        ║" -ForegroundColor Cyan
     Write-Host "║                   跨语言依赖管理工具                          ║" -ForegroundColor Cyan
     Write-Host "║                     一键安装运行脚本                         ║" -ForegroundColor Cyan
     Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan

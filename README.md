@@ -519,14 +519,14 @@ python -m pytest tests/ -v --cov=depx
 - ✅ GitHub Actions CI/CD
 - ✅ PyPI 自动发布
 
-### v0.5.0 (计划中)
+### v0.9.0 (计划中)
 - 🚧 Java/Maven/Gradle 支持
 - 🚧 Go 项目支持
 - 🚧 依赖安全扫描
 - 🚧 依赖更新检查
 - 🚧 性能优化
 
-### v0.6.0 (未来)
+### v0.10.0 (未来)
 - 🔮 Rust 项目支持
 - 🔮 PHP 项目支持
 - 🔮 Web 界面 (可选)
