@@ -156,13 +156,23 @@ function Show-UsageMenu {
         "1" {
             Write-Host "启动交互式界面..." -ForegroundColor Blue
             try {
-                # 设置编码并运行交互界面
+                # Windows 特殊处理：设置控制台编码和环境变量
                 $env:PYTHONIOENCODING = "utf-8"
-                & $pythonCmd interactive_depx.py
+                $env:PYTHONLEGACYWINDOWSSTDIO = "1"
+
+                # 尝试设置控制台代码页为 UTF-8
+                try {
+                    chcp 65001 | Out-Null
+                } catch {
+                    # 忽略 chcp 错误
+                }
+
+                # 运行交互界面，使用 -u 参数确保输出不缓冲
+                & $pythonCmd -u interactive_depx.py
             } catch {
-                Write-Host "交互界面启动失败，尝试简化模式..." -ForegroundColor Yellow
+                Write-Host "交互界面启动失败，使用命令行模式..." -ForegroundColor Yellow
                 Write-Host "错误信息: $($_.Exception.Message)" -ForegroundColor Red
-                & $pythonCmd run_depx_simple.py info .
+                Write-Host "您可以直接使用命令行模式 (选项 2)" -ForegroundColor Cyan
             }
         }
         "2" {
@@ -197,11 +207,12 @@ function Show-UsageMenu {
                     } else {
                         try {
                             $env:PYTHONIOENCODING = "utf-8"
-                            Invoke-Expression "$pythonCmd run_depx.py $cmd"
+                            $env:PYTHONLEGACYWINDOWSSTDIO = "1"
+                            # 使用 -m depx 方式运行，确保功能完整
+                            Invoke-Expression "$pythonCmd -m depx $cmd"
                         } catch {
-                            Write-Host "命令执行失败，尝试简化模式..." -ForegroundColor Yellow
-                            Write-Host "错误信息: $($_.Exception.Message)" -ForegroundColor Red
-                            Invoke-Expression "$pythonCmd run_depx_simple.py $cmd"
+                            Write-Host "命令执行失败: $($_.Exception.Message)" -ForegroundColor Red
+                            Write-Host "请检查命令格式是否正确" -ForegroundColor Yellow
                         }
                     }
                 }
@@ -209,16 +220,18 @@ function Show-UsageMenu {
         }
         "3" {
             Write-Host "📊 分析当前目录..." -ForegroundColor Blue
-            & $pythonCmd run_depx.py info .
+            $env:PYTHONIOENCODING = "utf-8"
+            & $pythonCmd -m depx info .
         }
         "4" {
             $package = Read-Host "🔍 请输入要搜索的包名"
             if ($package) {
-                & $pythonCmd run_depx.py search $package
+                $env:PYTHONIOENCODING = "utf-8"
+                & $pythonCmd -m depx search $package
             }
         }
         "5" {
-            & $pythonCmd run_depx.py --help
+            & $pythonCmd -m depx --help
         }
         "6" {
             Write-Host "👋 感谢使用 Depx！" -ForegroundColor Green

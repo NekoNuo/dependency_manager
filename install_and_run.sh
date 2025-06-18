@@ -191,7 +191,7 @@ show_usage_menu() {
                     if [[ "$cmd" == "--help" || "$cmd" == "-h" || "$cmd" == "help" ]]; then
                         echo -e "${BLUE}📋 Depx 可用命令：${NC}"
                         echo "  info [路径]          - 分析项目依赖"
-                        echo "  search <包名>        - 搜索包"
+                        echo "  search <包名>        - 搜索包 (搜索所有包管理器)"
                         echo "  install <包名>       - 安装包"
                         echo "  uninstall <包名>     - 卸载包"
                         echo "  update [包名]        - 更新包"
@@ -205,26 +205,28 @@ show_usage_menu() {
                         echo ""
                         echo "示例："
                         echo "  info .               - 分析当前目录"
-                        echo "  search lodash        - 搜索 lodash 包"
+                        echo "  search react         - 搜索 react 包 (所有包管理器)"
                         echo "  install express      - 安装 express 包"
                     else
-                        $PYTHON_CMD run_depx.py $cmd
+                        # 使用 -m depx 方式运行，确保功能完整
+                        $PYTHON_CMD -m depx $cmd
                     fi
                 fi
             done
             ;;
         3)
             echo -e "${BLUE}📊 分析当前目录...${NC}"
-            $PYTHON_CMD run_depx.py info .
+            $PYTHON_CMD -m depx info .
             ;;
         4)
             read -p "🔍 请输入要搜索的包名: " package < /dev/tty
             if [[ -n "$package" ]]; then
-                $PYTHON_CMD run_depx.py search "$package"
+                echo -e "${BLUE}🔍 搜索包: $package (所有包管理器)${NC}"
+                $PYTHON_CMD -m depx search "$package"
             fi
             ;;
         5)
-            $PYTHON_CMD run_depx.py --help
+            $PYTHON_CMD -m depx --help
             ;;
         6)
             echo -e "${GREEN}👋 感谢使用 Depx！${NC}"
@@ -252,19 +254,15 @@ trap cleanup EXIT
 check_interactive() {
     if [[ ! -t 0 ]]; then
         echo -e "${YELLOW}⚠️  检测到非交互模式（可能通过管道执行）${NC}"
-        echo -e "${BLUE}💡 建议下载脚本后本地运行以获得完整交互体验：${NC}"
+        echo -e "${BLUE}🚀 直接启动 Depx 命令行模式...${NC}"
         echo ""
-        echo -e "${GREEN}# 下载脚本${NC}"
-        echo "curl -fsSL https://raw.githubusercontent.com/NekoNuo/depx/master/install_and_run.sh -o install_depx.sh"
+        echo -e "${GREEN}✨ Depx 已安装完成！您可以使用以下命令：${NC}"
+        echo "  $PYTHON_CMD -m depx info .        # 分析当前目录"
+        echo "  $PYTHON_CMD -m depx search react  # 搜索包"
+        echo "  $PYTHON_CMD -m depx --help        # 查看帮助"
         echo ""
-        echo -e "${GREEN}# 运行脚本${NC}"
-        echo "bash install_depx.sh"
-        echo ""
-        echo -e "${BLUE}🚀 现在将自动运行快速分析演示...${NC}"
-        sleep 3
-        $PYTHON_CMD run_depx.py info .
-        echo ""
-        echo -e "${GREEN}✨ 演示完成！要获得完整功能，请下载脚本本地运行。${NC}"
+        echo -e "${BLUE}💡 要获得交互界面，请下载脚本后本地运行：${NC}"
+        echo "curl -fsSL https://raw.githubusercontent.com/NekoNuo/depx/master/install_and_run.sh -o install_depx.sh && bash install_depx.sh"
         return 1
     fi
     return 0

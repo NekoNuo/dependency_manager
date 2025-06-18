@@ -14,9 +14,33 @@ from pathlib import Path
 # 设置 UTF-8 编码
 if sys.platform == "win32":
     import codecs
-    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
-    sys.stderr = codecs.getwriter("utf-8")(sys.stderr.detach())
+    import locale
+
+    # 设置环境变量
     os.environ["PYTHONIOENCODING"] = "utf-8"
+    os.environ["PYTHONLEGACYWINDOWSSTDIO"] = "1"
+
+    # 尝试设置控制台编码
+    try:
+        # 设置控制台代码页为 UTF-8
+        os.system("chcp 65001 >nul 2>&1")
+
+        # 重新配置标准输出和错误输出
+        if hasattr(sys.stdout, 'reconfigure'):
+            sys.stdout.reconfigure(encoding='utf-8')
+            sys.stderr.reconfigure(encoding='utf-8')
+        else:
+            # 对于较老的 Python 版本
+            sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
+            sys.stderr = codecs.getwriter("utf-8")(sys.stderr.detach())
+    except Exception:
+        # 如果设置失败，使用简化模式
+        try:
+            sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
+            sys.stderr = codecs.getwriter("utf-8")(sys.stderr.detach())
+        except Exception:
+            # 最后的备选方案
+            pass
 
 # 添加当前目录到 Python 路径
 current_dir = Path(__file__).parent
@@ -51,7 +75,19 @@ def check_dependencies():
 def show_banner():
     """显示欢迎横幅"""
     try:
-        banner = """
+        # 尝试显示完整的 Unicode 横幅
+        if sys.platform == "win32":
+            # Windows 特殊处理
+            banner = """
++==============================================================+
+|                        Depx v0.8.7                          |
+|                   跨语言依赖管理工具                          |
+|                     交互式运行模式                           |
++==============================================================+
+"""
+        else:
+            # Unix/Linux/macOS 使用 Unicode 字符
+            banner = """
 ╔══════════════════════════════════════════════════════════════╗
 ║                        🚀 Depx v0.8.7                        ║
 ║                   跨语言依赖管理工具                          ║
@@ -59,10 +95,10 @@ def show_banner():
 ╚══════════════════════════════════════════════════════════════╝
 """
         print(banner)
-    except UnicodeEncodeError:
-        # Windows 兼容性：如果 Unicode 输出失败，使用简化版本
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        # 如果仍然失败，使用最简化版本
         print("=" * 60)
-        print("                    Depx v0.8.6")
+        print("                    Depx v0.8.7")
         print("               跨语言依赖管理工具")
         print("                 交互式运行模式")
         print("=" * 60)
@@ -70,11 +106,30 @@ def show_banner():
 def show_menu():
     """显示主菜单"""
     try:
-        menu = """
+        if sys.platform == "win32":
+            # Windows 简化版本，避免 emoji 问题
+            menu = """
+请选择要执行的操作：
+
+1. 分析项目依赖 (info)
+2. 搜索包 (search) - 搜索所有包管理器
+3. 安装包 (install)
+4. 卸载包 (uninstall)
+5. 更新包 (update)
+6. 清理依赖 (clean)
+7. 扫描全局依赖 (scan)
+8. 导出结果 (export)
+9. 配置管理 (config)
+0. 退出
+
+请输入选项编号 (0-9): """
+        else:
+            # Unix/Linux/macOS 使用 emoji
+            menu = """
 📋 请选择要执行的操作：
 
 1. 📊 分析项目依赖 (info)
-2. 🔍 搜索包 (search)
+2. 🔍 搜索包 (search) - 搜索所有包管理器
 3. 📦 安装包 (install)
 4. 🗑️  卸载包 (uninstall)
 5. 🔄 更新包 (update)
@@ -86,8 +141,8 @@ def show_menu():
 
 请输入选项编号 (0-9): """
         return input(menu).strip()
-    except UnicodeEncodeError:
-        # Windows 兼容性：如果 Unicode 输出失败，使用简化版本
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        # 最简化版本
         menu = """
 请选择要执行的操作：
 
