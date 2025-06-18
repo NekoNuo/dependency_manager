@@ -1,5 +1,12 @@
 # Depx - 本地多语言依赖统一管理器
 
+[![Version](https://img.shields.io/badge/version-0.9.0-blue.svg)](https://github.com/NekoNuo/depx)
+[![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://python.org)
+[![License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/NekoNuo/depx)
+
+> 🌍 **多语言版本**: [English](README_EN.md) | [中文](README_ZH.md) | [关于项目](ABOUT.md)
+
 🚀 **统一发现 • 信息透明 • 空间优化 • 跨平台支持**
 
 Depx 是一个强大的本地依赖管理工具，能够自动识别和分析本地文件系统中各种编程语言项目的依赖关系，帮助开发者更好地管理和优化项目依赖。
