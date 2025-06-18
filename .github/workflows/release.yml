@@ -91,8 +91,8 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          dist/*.whl
-          dist/*.tar.gz
+          dist/depx-*.whl
+          dist/depx-[0-9]*.tar.gz
           dist/depx-standalone.zip
           dist/depx-standalone.tar.gz
         body_path: release_notes.md
