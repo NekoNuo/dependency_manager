@@ -34,6 +34,12 @@ from .i18n import (
 from .parsers.base import PackageManagerType, ProjectType
 from .utils.file_utils import format_size
 
+# 导入版本号
+try:
+    from . import __version__
+except ImportError:
+    __version__ = "0.8.4"
+
 # Set UTF-8 encoding for Windows compatibility
 if sys.platform.startswith("win"):
     os.environ["PYTHONIOENCODING"] = "utf-8"
@@ -122,7 +128,9 @@ class CustomGroup(click.Group):
 
 
 @click.group(cls=CustomGroup)
-@click.version_option(version="0.8.3")
+@click.option('--version', is_flag=True, expose_value=False, is_eager=True,
+              callback=lambda ctx, param, value: click.echo(f'Depx {__version__}') or ctx.exit() if value else None,
+              help='Show the version and exit.')
 @click.option(
     "--verbose", "-v", is_flag=True, help="Enable verbose output with detailed logging"
 )
