@@ -143,39 +143,78 @@ function Show-UsageMenu {
     Write-Host "🚀 Depx 已准备就绪！请选择运行方式：" -ForegroundColor Magenta
     Write-Host ""
     Write-Host "1. 🖥️  交互式界面 - 友好的菜单界面" -ForegroundColor White
-    Write-Host "2. 📋 命令行模式 - 直接运行命令" -ForegroundColor White
-    Write-Host "3. 📊 快速分析 - 分析当前目录" -ForegroundColor White
-    Write-Host "4. 🔍 快速搜索 - 搜索包" -ForegroundColor White
-    Write-Host "5. ❓ 显示帮助 - 查看所有命令" -ForegroundColor White
-    Write-Host "6. 🚪 退出" -ForegroundColor White
+    Write-Host "2. 🖥️  简化交互界面 - Windows 兼容版本" -ForegroundColor White
+    Write-Host "3. 📋 命令行模式 - 直接运行命令" -ForegroundColor White
+    Write-Host "4. 📊 快速分析 - 分析当前目录" -ForegroundColor White
+    Write-Host "5. 🔍 快速搜索 - 搜索包" -ForegroundColor White
+    Write-Host "6. ❓ 显示帮助 - 查看所有命令" -ForegroundColor White
+    Write-Host "7. 🚪 退出" -ForegroundColor White
     Write-Host ""
     
-    $choice = Read-Host "请输入选项编号 (1-6)"
+    $choice = Read-Host "请输入选项编号 (1-7)"
     
     switch ($choice) {
         "1" {
             Write-Host "启动交互式界面..." -ForegroundColor Blue
-            try {
-                # Windows 特殊处理：设置控制台编码和环境变量
-                $env:PYTHONIOENCODING = "utf-8"
-                $env:PYTHONLEGACYWINDOWSSTDIO = "1"
+            Write-Host "注意：Windows 交互界面可能存在兼容性问题" -ForegroundColor Yellow
+            Write-Host "如果卡死，请按 Ctrl+C 退出，然后选择选项 2（命令行模式）" -ForegroundColor Yellow
 
-                # 尝试设置控制台代码页为 UTF-8
+            $choice = Read-Host "是否继续启动交互界面？(y/N)"
+            if ($choice -match "^[Yy]$") {
                 try {
-                    chcp 65001 | Out-Null
-                } catch {
-                    # 忽略 chcp 错误
-                }
+                    # Windows 特殊处理：设置控制台编码和环境变量
+                    $env:PYTHONIOENCODING = "utf-8"
+                    $env:PYTHONLEGACYWINDOWSSTDIO = "1"
 
-                # 运行交互界面，使用 -u 参数确保输出不缓冲
-                & $pythonCmd -u interactive_depx.py
-            } catch {
-                Write-Host "交互界面启动失败，使用命令行模式..." -ForegroundColor Yellow
-                Write-Host "错误信息: $($_.Exception.Message)" -ForegroundColor Red
-                Write-Host "您可以直接使用命令行模式 (选项 2)" -ForegroundColor Cyan
+                    # 尝试设置控制台代码页为 UTF-8
+                    try {
+                        chcp 65001 | Out-Null
+                    } catch {
+                        # 忽略 chcp 错误
+                    }
+
+                    Write-Host "正在启动交互界面，如果卡死请按 Ctrl+C..." -ForegroundColor Cyan
+
+                    # 运行交互界面，使用 -u 参数确保输出不缓冲
+                    & $pythonCmd -u interactive_depx.py
+                } catch {
+                    Write-Host "交互界面启动失败，自动切换到命令行模式..." -ForegroundColor Yellow
+                    Write-Host "错误信息: $($_.Exception.Message)" -ForegroundColor Red
+
+                    # 自动进入命令行模式
+                    Write-Host "进入命令行模式..." -ForegroundColor Blue
+                    Write-Host "输入 'exit' 退出"
+                    do {
+                        $cmd = Read-Host "depx>"
+                        if ($cmd -eq "exit" -or $cmd -eq "quit") {
+                            break
+                        }
+                        if ($cmd) {
+                            try {
+                                $env:PYTHONIOENCODING = "utf-8"
+                                $env:PYTHONLEGACYWINDOWSSTDIO = "1"
+                                Invoke-Expression "$pythonCmd -m depx $cmd"
+                            } catch {
+                                Write-Host "命令执行失败: $($_.Exception.Message)" -ForegroundColor Red
+                            }
+                        }
+                    } while ($true)
+                }
+            } else {
+                Write-Host "已取消，请选择其他选项" -ForegroundColor Yellow
             }
         }
         "2" {
+            Write-Host "启动简化交互界面..." -ForegroundColor Blue
+            try {
+                $env:PYTHONIOENCODING = "utf-8"
+                & $pythonCmd interactive_depx_simple.py
+            } catch {
+                Write-Host "简化交互界面启动失败: $($_.Exception.Message)" -ForegroundColor Red
+                Write-Host "请尝试命令行模式 (选项 3)" -ForegroundColor Yellow
+            }
+        }
+        "3" {
             Write-Host "进入命令行模式..." -ForegroundColor Blue
             Write-Host "输入 'exit' 退出"
             do {
@@ -188,7 +227,7 @@ function Show-UsageMenu {
                     if ($cmd -eq "--help" -or $cmd -eq "-h" -or $cmd -eq "help") {
                         Write-Host "Depx 可用命令：" -ForegroundColor Blue
                         Write-Host "  info [路径]          - 分析项目依赖"
-                        Write-Host "  search <包名>        - 搜索包"
+                        Write-Host "  search <包名>        - 搜索包 (所有包管理器)"
                         Write-Host "  install <包名>       - 安装包"
                         Write-Host "  uninstall <包名>     - 卸载包"
                         Write-Host "  update [包名]        - 更新包"
@@ -202,7 +241,7 @@ function Show-UsageMenu {
                         Write-Host ""
                         Write-Host "示例："
                         Write-Host "  info .               - 分析当前目录"
-                        Write-Host "  search lodash        - 搜索 lodash 包"
+                        Write-Host "  search react         - 搜索 react 包 (所有包管理器)"
                         Write-Host "  install express      - 安装 express 包"
                     } else {
                         try {
@@ -218,22 +257,23 @@ function Show-UsageMenu {
                 }
             } while ($true)
         }
-        "3" {
+        "4" {
             Write-Host "📊 分析当前目录..." -ForegroundColor Blue
             $env:PYTHONIOENCODING = "utf-8"
             & $pythonCmd -m depx info .
         }
-        "4" {
+        "5" {
             $package = Read-Host "🔍 请输入要搜索的包名"
             if ($package) {
+                Write-Host "搜索包: $package (所有包管理器)" -ForegroundColor Blue
                 $env:PYTHONIOENCODING = "utf-8"
                 & $pythonCmd -m depx search $package
             }
         }
-        "5" {
+        "6" {
             & $pythonCmd -m depx --help
         }
-        "6" {
+        "7" {
             Write-Host "👋 感谢使用 Depx！" -ForegroundColor Green
             return $false
         }

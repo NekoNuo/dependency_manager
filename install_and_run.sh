@@ -106,37 +106,104 @@ create_temp_dir() {
 # 下载 Depx
 download_depx() {
     echo -e "${BLUE}📥 正在下载 Depx...${NC}"
-    
+
     # 方法1: 使用 git clone（如果有 git）
     if command -v git &> /dev/null; then
-        git clone https://github.com/NekoNuo/depx.git depx-repo
-        cd depx-repo
-    else
-        # 方法2: 使用 curl 下载 zip
-        if command -v curl &> /dev/null; then
-            curl -L https://github.com/NekoNuo/depx/archive/master.zip -o depx.zip
-            if command -v unzip &> /dev/null; then
-                unzip -q depx.zip
-                cd depx-master
-            else
-                echo -e "${RED}❌ 需要 unzip 命令来解压文件${NC}"
-                exit 1
+        echo -e "${BLUE}使用 git clone 下载...${NC}"
+        if git clone https://github.com/NekoNuo/depx.git depx-repo; then
+            cd depx-repo
+            echo -e "${GREEN}✅ Git clone 成功${NC}"
+        else
+            echo -e "${YELLOW}⚠️  Git clone 失败，尝试其他方法...${NC}"
+            # 如果 git clone 失败，继续尝试其他方法
+        fi
+    fi
+
+    # 如果 git clone 失败或没有 git，尝试下载 zip
+    if [[ ! -d "depx-repo" && ! -d "depx-master" ]]; then
+        echo -e "${BLUE}使用 HTTP 下载 zip 文件...${NC}"
+
+        # 尝试多个下载链接
+        DOWNLOAD_URLS=(
+            "https://github.com/NekoNuo/depx/archive/refs/heads/master.zip"
+            "https://github.com/NekoNuo/depx/archive/master.zip"
+            "https://codeload.github.com/NekoNuo/depx/zip/refs/heads/master"
+        )
+
+        DOWNLOAD_SUCCESS=false
+
+        for url in "${DOWNLOAD_URLS[@]}"; do
+            echo -e "${BLUE}尝试下载: $url${NC}"
+
+            if command -v curl &> /dev/null; then
+                if curl -fsSL "$url" -o depx.zip; then
+                    DOWNLOAD_SUCCESS=true
+                    break
+                fi
+            elif command -v wget &> /dev/null; then
+                if wget -q "$url" -O depx.zip; then
+                    DOWNLOAD_SUCCESS=true
+                    break
+                fi
             fi
-        elif command -v wget &> /dev/null; then
-            wget https://github.com/NekoNuo/depx/archive/master.zip -O depx.zip
-            if command -v unzip &> /dev/null; then
-                unzip -q depx.zip
-                cd depx-master
+
+            echo -e "${YELLOW}⚠️  下载失败，尝试下一个链接...${NC}"
+        done
+
+        if [[ "$DOWNLOAD_SUCCESS" == "false" ]]; then
+            echo -e "${RED}❌ 所有下载方法都失败了${NC}"
+            echo -e "${YELLOW}💡 尝试备选方案：${NC}"
+            echo ""
+            echo -e "${BLUE}方案1: 使用快速安装脚本${NC}"
+            echo "curl -fsSL https://raw.githubusercontent.com/NekoNuo/depx/main/quick_install.sh | bash"
+            echo ""
+            echo -e "${BLUE}方案2: 手动下载${NC}"
+            echo "   1. 访问: https://github.com/NekoNuo/depx"
+            echo "   2. 点击 'Code' -> 'Download ZIP'"
+            echo "   3. 解压后运行此脚本"
+            echo ""
+            echo -e "${BLUE}方案3: 直接使用 pip 安装${NC}"
+            echo "pip install depx --user"
+            echo "python -m depx --help"
+            exit 1
+        fi
+
+        # 解压文件
+        if command -v unzip &> /dev/null; then
+            if unzip -q depx.zip; then
+                # 查找解压后的目录
+                if [[ -d "depx-master" ]]; then
+                    cd depx-master
+                elif [[ -d "depx-main" ]]; then
+                    cd depx-main
+                else
+                    # 查找任何以 depx 开头的目录
+                    DEPX_DIR=$(find . -maxdepth 1 -type d -name "depx*" | head -1)
+                    if [[ -n "$DEPX_DIR" ]]; then
+                        cd "$DEPX_DIR"
+                    else
+                        echo -e "${RED}❌ 找不到解压后的 depx 目录${NC}"
+                        exit 1
+                    fi
+                fi
+                echo -e "${GREEN}✅ 文件解压成功${NC}"
             else
-                echo -e "${RED}❌ 需要 unzip 命令来解压文件${NC}"
+                echo -e "${RED}❌ 解压失败${NC}"
                 exit 1
             fi
         else
-            echo -e "${RED}❌ 需要 curl 或 wget 来下载文件${NC}"
+            echo -e "${RED}❌ 需要 unzip 命令来解压文件${NC}"
+            echo -e "${YELLOW}请安装 unzip: ${NC}"
+            if [[ "$OS" == "macos" ]]; then
+                echo "  brew install unzip"
+            else
+                echo "  sudo apt-get install unzip  # Ubuntu/Debian"
+                echo "  sudo yum install unzip      # CentOS/RHEL"
+            fi
             exit 1
         fi
     fi
-    
+
     echo -e "${GREEN}✅ Depx 下载完成${NC}"
 }
 
@@ -262,7 +329,13 @@ check_interactive() {
         echo "  $PYTHON_CMD -m depx --help        # 查看帮助"
         echo ""
         echo -e "${BLUE}💡 要获得交互界面，请下载脚本后本地运行：${NC}"
-        echo "curl -fsSL https://raw.githubusercontent.com/NekoNuo/depx/master/install_and_run.sh -o install_depx.sh && bash install_depx.sh"
+        echo "# 方法1: 直接下载运行"
+        echo "curl -fsSL https://raw.githubusercontent.com/NekoNuo/depx/main/install_and_run.sh -o install_depx.sh"
+        echo "bash install_depx.sh"
+        echo ""
+        echo "# 方法2: 如果下载失败，手动下载"
+        echo "wget https://github.com/NekoNuo/depx/raw/main/install_and_run.sh -O install_depx.sh"
+        echo "bash install_depx.sh"
         return 1
     fi
     return 0
